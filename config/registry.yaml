@@ -1,0 +1,61 @@
+# Elenco fonti normative – Varcavia MVP
+sources:
+  - id: eur-oj
+    name: Official Journal of the EU
+    url: https://eur-lex.europa.eu/oj/direct-access.html
+    type: html
+    frequency: daily
+
+  - id: sec-edgar
+    name: SEC EDGAR Filings
+    url: https://www.sec.gov/edgar/search/#/category=custom&forms=10-K
+    type: html
+    frequency: daily
+
+  - id: it-gazzetta
+    name: Gazzetta Ufficiale Italiana
+    url: https://www.gazzettaufficiale.it/rss/rss.xml
+    type: rss
+    frequency: daily
+
+  - id: bankitalia
+    name: Banca d’Italia – Comunicati
+    url: https://www.bancaditalia.it/media/notizia/index.html
+    type: html
+    frequency: daily
+
+  - id: esma
+    name: ESMA News
+    url: https://www.esma.europa.eu/press-news/esma-news
+    type: html
+    frequency: daily
+
+  - id: fincen
+    name: FinCEN Press Releases
+    url: https://www.fincen.gov/news-room/press-releases
+    type: html
+    frequency: daily
+
+  - id: fca-uk
+    name: FCA UK Handbook Updates
+    url: https://www.handbook.fca.org.uk/feeds/HandbookNotice.xml
+    type: rss
+    frequency: daily
+
+  - id: bafin
+    name: BaFin Germany – Publications
+    url: https://www.bafin.de/EN/Aktuell_en/Publikationen_en/publikationen_node_en.html
+    type: html
+    frequency: weekly
+
+  - id: eba
+    name: EBA News & Press
+    url: https://www.eba.europa.eu/news-press
+    type: html
+    frequency: weekly
+
+  - id: cnmv
+    name: CNMV Spain Communications
+    url: https://www.cnmv.es/portal/HR/resultado-busqueda.aspx?lang=en
+    type: html
+    frequency: weekly
