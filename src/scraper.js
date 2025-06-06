@@ -1,1 +1,1 @@
-// TODO
+js\nimport fs from 'fs/promises';\nimport fetch from 'node-fetch';\nimport yaml from 'yaml';\n\n// Legge il file registry\nconst text = await fs.readFile('config/registry.yaml', 'utf8');\nconst { sources } = yaml.parse(text);\n\n// Stampa la prima fonte come prova\nconsole.log('Prima fonte da controllare:', sources[0]);\n
