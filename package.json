@@ -2,7 +2,7 @@
   "name": "varcavia-core",
   "version": "0.0.1",
   "description": "Core codebase Varcavia",
-  "scripts": {
+  "scripts": {"start": "node src/scraper.js"
     "test": "echo \"OK\""
   }
 }
