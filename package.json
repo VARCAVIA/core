@@ -1,0 +1,8 @@
+{
+  "name": "varcavia-core",
+  "version": "0.0.1",
+  "description": "Core codebase Varcavia",
+  "scripts": {
+    "test": "echo \"OK\""
+  }
+}
