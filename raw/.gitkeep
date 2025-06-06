@@ -1,1 +1,30 @@
+import fs from 'fs/promises';
+import fetch from 'node-fetch';
+import yaml from 'yaml';
+
+async function main() {
+  // 1. Legge il file registry
+  const text = await fs.readFile('config/registry.yaml', 'utf8');
+  const { sources } = yaml.parse(text);
+
+  // 2. Prende la prima fonte (Official Journal EU)
+  const first = sources[0];
+  console.log('Scarico:', first.name, '->', first.url);
+
+  // 3. Scarica la pagina
+  const res = await fetch(first.url);
+  if (!res.ok) {
+    throw new Error(`Fetch fallito: ${res.status} ${res.statusText}`);
+  }
+  const html = await res.text();
+
+  // 4. Salva il file grezzo in raw/
+  await fs.writeFile(`raw/${first.id}.html`, html);
+  console.log('Salvato raw/' + first.id + '.html ✅');
+}
+
+main().catch(err => {
+  console.error('Errore scraper:', err);
+  process.exit(1);
+});
 
