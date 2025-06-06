@@ -1,1 +1,14 @@
-json<br>{<br> "name": "varcavia-core",<br> "version": "0.0.1",<br> "type": "module",<br> "description": "Core codebase Varcavia",<br> "dependencies": {<br> "node-fetch": "^3.4.0",<br> "yaml": "^2.3.5"<br> },<br> "scripts": {<br> "start": "node src/scraper.js",<br> "test": "echo \\"OK\\"" <br> }<br>}<br>
+{
+  "name": "varcavia-core",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Core codebase Varcavia",
+  "dependencies": {
+    "node-fetch": "^3.4.0",
+    "yaml": "^2.3.5"
+  },
+  "scripts": {
+    "start": "node src/scraper.js",
+    "test": "echo \"OK\""
+  }
+}
