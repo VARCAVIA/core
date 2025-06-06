@@ -1,6 +1,7 @@
 {
   "name": "varcavia-core",
-  "version": "0.0.1",
+  "version": "0.0.1","type": "module"
+  "dependencies": { "node-fetch": "^3.4.0" }
   "description": "Core codebase Varcavia",
   "scripts": {"start": "node src/scraper.js"
     "test": "echo \"OK\""
