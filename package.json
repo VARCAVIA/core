@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Core codebase Varcavia",
   "dependencies": {
-    "node-fetch": "^3.4.0",
+    "node-fetch": "^3.3.2",
     "yaml": "^2.3.5"
   },
   "scripts": {
