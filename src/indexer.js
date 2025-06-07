@@ -1,6 +1,7 @@
 // src/indexer.js
 import fs from 'fs/promises';
 import path from 'path';
+import lunr from 'lunr';
 
 const parsedDir = 'parsed';
 const indexedDir = 'indexed';
@@ -17,13 +18,22 @@ for (const file of files) {
   const text = await fs.readFile(path.join(parsedDir, file), 'utf8');
   const doc = { id, text };
   documents.push(doc);
-  await fs.writeFile(path.join(indexedDir, `${id}.json`), JSON.stringify(doc, null, 2));
+  await fs.writeFile(path.join(indexedDir, `${id}.json`), JSON.stringify(doc));
   console.log(`✅ Indicizzato ${file} → ${path.join(indexedDir, id + '.json')}`);
   counter++;
 }
 
-// **Qui la modifica:**
-// Salva TUTTI i documenti come ARRAY in index.json
-await fs.writeFile(path.join(indexedDir, 'index.json'), JSON.stringify(documents, null, 2));
+// Costruisce l'indice
+const idx = lunr(function () {
+  this.ref('id');
+  this.field('text');
+  for (const doc of documents) this.add(doc);
+});
+
+// Salva SOLO l’indice serializzato per lunr
+await fs.writeFile(
+  path.join(indexedDir, 'index.json'),
+  JSON.stringify(idx.toJSON(), null, 2)
+);
 
 console.log(`📚 Indicizzazione completata con ${counter} documenti indicizzati.`);
