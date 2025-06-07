@@ -1,20 +1,22 @@
 {
   "name": "varcavia-core",
   "version": "0.0.1",
+  "description": "Pipeline normativa - progetto VARCAVIA",
   "type": "module",
-  "description": "Core codebase Varcavia",
+  "main": "src/api.js",
+  "scripts": {
+    "start": "node src/api.js",
+    "scraper": "node src/scraper.js",
+    "loader": "node src/loader.js",
+    "indexer": "node src/indexer.js",
+    "update-all": "npm run scraper && npm run loader && npm run indexer"
+  },
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
     "jsdom": "^24.0.0",
     "lunr": "^2.3.9",
     "node-fetch": "^3.3.2",
-    "yaml": "^2.3.5"
-  },
-  "scripts": {
-    "start": "node src/scraper.js",
-    "parse": "node src/parser.js",
-    "load": "node src/loader.js",
-    "test": "echo \"OK\""
+    "yaml": "^2.4.2",
+    "cors": "^2.8.5"
   }
 }
