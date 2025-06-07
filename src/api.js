@@ -3,31 +3,30 @@ import cors from 'cors';
 import fs from 'fs/promises';
 import lunr from 'lunr';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 
-// Setup per __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const app = express();
+app.use(cors());
 
-const indexedDir = path.join(__dirname, '../indexed');
-const data = [];
-const files = await fs.readdir(indexedDir);
-for (const file of files) {
-  if (!file.endsWith('.json') || file === 'index.json') continue;
-  const doc = JSON.parse(await fs.readFile(path.join(indexedDir, file), 'utf8'));
-  data.push(doc);
+const DATA_PATH = 'indexed';
+const INDEX_FILE = path.join(DATA_PATH, 'index.json');
+
+function cleanText(text) {
+  // Rimuove simboli ripetuti, spazi, header/footer rumorosi (grezzo, migliorabile)
+  return text
+    .replace(/\*\*\*/g, '')    // Rimuove ***
+    .replace(/\r?\n|\r/g, ' ') // Rende tutto una riga
+    .replace(/\s+/g, ' ')      // Spazi multipli
+    .trim();
 }
-
-const idxData = JSON.parse(await fs.readFile(path.join(indexedDir, 'index.json'), 'utf8'));
-const idx = lunr.Index.load(idxData);
 
 function makePreview(text, keyword) {
   const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
-  if (idx === -1) return text.slice(0, 180) + "...";
+  if (idx === -1) return cleanText(text).slice(0, 180) + "...";
+  // Estrae 80 caratteri prima e 80 dopo la parola trovata
   const start = Math.max(0, idx - 80);
   const end = Math.min(text.length, idx + keyword.length + 80);
-  let snippet = text.slice(start, end);
+  let snippet = cleanText(text.slice(start, end));
+  // Evidenzia la parola chiave con ***
   snippet = snippet.replace(
     new RegExp(keyword, 'gi'),
     match => `***${match}***`
@@ -35,27 +34,45 @@ function makePreview(text, keyword) {
   return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
 }
 
-const app = express();
-app.use(cors());
+let idx;
+let docs = [];
 
-// Serve anche i file statici da public/
-app.use(express.static(path.join(__dirname, '../public')));
+async function loadData() {
+  // Carica tutti i .json singoli, ignora index.json
+  const files = (await fs.readdir(DATA_PATH)).filter(f => f.endsWith('.json') && f !== 'index.json');
+  docs = [];
+  for (const file of files) {
+    const d = JSON.parse(await fs.readFile(path.join(DATA_PATH, file), 'utf8'));
+    docs.push({
+      id: d.id,
+      text: cleanText(d.text),
+      // Estrai titolo dalle prime 120 lettere (migliorabile)
+      title: cleanText(d.text).slice(0, 120) + "...",
+      source: d.id
+    });
+  }
+  // Carica l'indice (serializzato con lunr)
+  const rawIdx = JSON.parse(await fs.readFile(INDEX_FILE, 'utf8'));
+  idx = lunr.Index.load(rawIdx);
+}
+
+await loadData();
 
 app.get('/search', (req, res) => {
-  const query = req.query.q || '';
+  const query = (req.query.q || '').toString().trim();
   if (!query) return res.json([]);
   const results = idx.search(query);
-  const out = results.map(({ ref }) => {
-    const doc = data.find(d => d.id === ref);
+  res.json(results.map(({ ref }) => {
+    const doc = docs.find(d => d.id === ref);
     return {
       id: doc.id,
+      title: doc.title,
+      source: doc.source,
       preview: makePreview(doc.text, query)
     };
-  });
-  res.json(out);
+  }));
 });
 
 app.listen(3000, () => {
-  console.log('🚀 API pronta su http://localhost:3000/');
-  console.log('🌐 Apri il browser su http://localhost:3000/');
+  console.log('✅ API avviata su http://localhost:3000');
 });
