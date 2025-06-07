@@ -1,1 +1,11 @@
 source_id,run_ts,status,http_status,file_path
+eur-oj,2025-06-07T11:56:02.714Z,ok,200,raw/eur-oj.html
+sec-edgar,2025-06-07T11:56:02.714Z,fail,403,raw/sec-edgar.html
+it-gazzetta,2025-06-07T11:56:02.714Z,ok,200,raw/it-gazzetta.html
+bankitalia,2025-06-07T11:56:02.714Z,fail,404,raw/bankitalia.html
+esma,2025-06-07T11:56:02.714Z,ok,200,raw/esma.html
+fincen,2025-06-07T11:56:02.714Z,fail,403,raw/fincen.html
+fca-uk,2025-06-07T11:56:02.714Z,fail,403,raw/fca-uk.html
+bafin,2025-06-07T11:56:02.714Z,fail,404,raw/bafin.html
+eba,2025-06-07T11:56:02.714Z,ok,200,raw/eba.html
+cnmv,2025-06-07T11:56:02.714Z,ok,200,raw/cnmv.html
