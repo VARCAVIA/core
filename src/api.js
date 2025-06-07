@@ -1,43 +1,57 @@
+// src/api.js
 import express from 'express';
 import fs from 'fs/promises';
-import path from 'path';
 import lunr from 'lunr';
-import { fileURLToPath } from 'url';
 
-// Setup __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Carica documenti indicizzati
-const dataPath = path.join(__dirname, '../indexed/index.json');
-const data = JSON.parse(await fs.readFile(dataPath, 'utf8'));
-
-// Ricostruisci indice Lunr
-const index = lunr(function () {
-  this.ref('id');
-  this.field('text');
-  data.forEach(doc => this.add(doc));
-});
+const indexedPath = 'indexed/index.json';
+const docsDir = 'indexed';
 
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
+// Carica indice e documenti
+const idxData = JSON.parse(await fs.readFile(indexedPath, 'utf8'));
+const idx = lunr.Index.load(idxData);
+
+const files = await fs.readdir(docsDir);
+const data = [];
+for (const file of files) {
+  if (!file.endsWith('.json') || file === 'index.json') continue;
+  const doc = JSON.parse(await fs.readFile(`${docsDir}/${file}`, 'utf8'));
+  data.push(doc);
+}
+
+// Funzione preview migliorata
+function makePreview(text, keyword) {
+  const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
+  if (idx === -1) return text.slice(0, 180) + "...";
+  // Estrae 80 caratteri prima e 80 dopo la parola trovata
+  const start = Math.max(0, idx - 80);
+  const end = Math.min(text.length, idx + keyword.length + 80);
+  let snippet = text.slice(start, end);
+  // Evidenzia la parola chiave con ***
+  snippet = snippet.replace(
+    new RegExp(keyword, 'gi'),
+    match => `***${match}***`
+  );
+  return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
+}
+
+// Endpoint di ricerca
 app.get('/search', (req, res) => {
-  const q = req.query.q || '';
-  const results = index.search(q);
-  const enriched = results.map(r => {
-    const match = data.find(d => d.id === r.ref);
-    return { id: match.id, preview: match.text.slice(0, 300) };
+  const query = req.query.q;
+  if (!query) return res.json([]);
+  const results = idx.search(query);
+  const out = results.map(({ ref }) => {
+    const doc = data.find(d => d.id === ref);
+    return {
+      id: doc.id,
+      preview: makePreview(doc.text, query)
+    };
   });
-  res.json(enriched);
+  res.json(out);
 });
 
-app.get('/doc/:id', async (req, res) => {
-  const doc = data.find(d => d.id === req.params.id);
-  if (!doc) return res.status(404).json({ error: 'Not found' });
-  res.json(doc);
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server attivo su http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`🚀 API attiva su http://localhost:${port}`);
 });
