@@ -1,45 +1,39 @@
 // src/api.js
 import express from 'express';
 import fs from 'fs/promises';
+import path from 'path';
 import lunr from 'lunr';
 
-const indexedPath = 'indexed/index.json';
-const docsDir = 'indexed';
-
+const indexedDir = 'indexed';
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-// Carica indice e documenti
-const idxData = JSON.parse(await fs.readFile(indexedPath, 'utf8'));
-const idx = lunr.Index.load(idxData);
-
-const files = await fs.readdir(docsDir);
+// Carica dati e indice
 const data = [];
+const files = await fs.readdir(indexedDir);
 for (const file of files) {
   if (!file.endsWith('.json') || file === 'index.json') continue;
-  const doc = JSON.parse(await fs.readFile(`${docsDir}/${file}`, 'utf8'));
+  const doc = JSON.parse(await fs.readFile(path.join(indexedDir, file), 'utf8'));
   data.push(doc);
 }
+const idxRaw = JSON.parse(await fs.readFile(path.join(indexedDir, 'index.json'), 'utf8'));
+const idx = lunr.Index.load(idxRaw);
 
-// Funzione preview migliorata
+// Preview migliorata e pulita
 function makePreview(text, keyword) {
   const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
-  if (idx === -1) return text.slice(0, 180) + "...";
-  // Estrae 80 caratteri prima e 80 dopo la parola trovata
+  if (idx === -1) return text.replace(/[\r\n\t ]+/g, ' ').slice(0, 180) + "...";
+  // Finestra 80+80, parola evidenziata
   const start = Math.max(0, idx - 80);
   const end = Math.min(text.length, idx + keyword.length + 80);
-  let snippet = text.slice(start, end);
-  // Evidenzia la parola chiave con ***
-  snippet = snippet.replace(
-    new RegExp(keyword, 'gi'),
-    match => `***${match}***`
-  );
+  let snippet = text.slice(start, end).replace(/[\r\n\t ]+/g, ' ');
+  snippet = snippet.replace(new RegExp(keyword, 'gi'), match => `***${match}***`);
   return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
 }
 
-// Endpoint di ricerca
+// Endpoint ricerca
 app.get('/search', (req, res) => {
-  const query = req.query.q;
+  const query = req.query.q || '';
   if (!query) return res.json([]);
   const results = idx.search(query);
   const out = results.map(({ ref }) => {
@@ -52,6 +46,6 @@ app.get('/search', (req, res) => {
   res.json(out);
 });
 
-app.listen(port, () => {
-  console.log(`🚀 API attiva su http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 API pronta su http://localhost:${PORT}/search?q=YOUR_KEYWORD`);
 });
