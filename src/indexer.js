@@ -1,52 +1,33 @@
+// src/indexer.js
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import lunr from 'lunr';
 
-// Setup per __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const parsedDir = 'parsed';
+const indexedDir = 'indexed';
 
-// Percorsi
-const parsedDir = path.join(__dirname, '../parsed');
-const indexedDir = path.join(__dirname, '../indexed');
-
-// Crea cartella indexed/ se non esiste
 await fs.mkdir(indexedDir, { recursive: true });
 
-// Lista dei file .txt nella cartella parsed/
 const files = await fs.readdir(parsedDir);
+const documents = [];
+let counter = 0;
 
 for (const file of files) {
   if (!file.endsWith('.txt')) continue;
-
-  const filePath = path.join(parsedDir, file);
-  const rawText = await fs.readFile(filePath, 'utf8');
-
-  // 🔹 Pulizia avanzata del testo
-  const cleaned = rawText
-    .replace(/\s+/g, ' ')                 // spazi multipli
-    .replace(/[\r\n\t]+/g, ' ')           // ritorni a capo e tabulazioni
-    .replace(/(Header|Footer).{0,30}/gi, '') // rimuove header/footer se presenti
-    .trim();
-
-  // 🔹 Separazione logica per titoli
-  const sections = cleaned.split(/(?=([A-Z][^\n]{5,80}:))/g)  // match tipo "Title:", "Section:", ecc.
-
-  const chunks = [];
-  for (let i = 0; i < sections.length; i += 2) {
-    const title = sections[i]?.trim();
-    const content = sections[i + 1]?.trim();
-    if (title && content) {
-      chunks.push({ title, content });
-    }
-  }
-
-  // 🔹 Salva output indicizzato
-  const id = file.replace('.txt', '');
-  const outputPath = path.join(indexedDir, `${id}.json`);
-  await fs.writeFile(outputPath, JSON.stringify(chunks, null, 2), 'utf8');
-
-  console.log(`✅ Indicizzato ${file} → ${outputPath}`);
+  const id = path.basename(file, '.txt');
+  const text = await fs.readFile(path.join(parsedDir, file), 'utf8');
+  const doc = { id, text };
+  documents.push(doc);
+  await fs.writeFile(path.join(indexedDir, `${id}.json`), JSON.stringify(doc));
+  console.log(`✅ Indicizzato ${file} → ${path.join(indexedDir, id + '.json')}`);
+  counter++;
 }
 
-console.log('📚 Indicizzazione completata.');
+const idx = lunr(function () {
+  this.ref('id');
+  this.field('text');
+  for (const doc of documents) this.add(doc);
+});
+
+await fs.writeFile(path.join(indexedDir, 'index.json'), JSON.stringify(idx));
+console.log(`📚 Indicizzazione completata con ${counter} documenti indicizzati.`);
