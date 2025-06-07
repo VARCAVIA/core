@@ -10,4 +10,3 @@ node src\indexer.js
 
 echo Update completato.
 pause
-
