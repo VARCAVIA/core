@@ -1,25 +1,38 @@
 import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { JSDOM } from 'jsdom';
 
-// Assicura esistenza cartella parsed/
-await fs.mkdir('parsed', { recursive: true });
+// Setup per __dirname su ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Leggi tutti i file presenti nella cartella raw/
-const files = await fs.readdir('raw');
+// Cartelle
+const rawDir = path.join(__dirname, '../raw');
+const parsedDir = path.join(__dirname, '../parsed');
+
+// Assicura cartella parsed/
+await fs.mkdir(parsedDir, { recursive: true });
+
+// Lista file HTML
+const files = await fs.readdir(rawDir);
 
 for (const file of files) {
-  const rawPath = `raw/${file}`;
-  const parsedPath = `parsed/${file.replace('.html', '.txt')}`;
+  if (!file.endsWith('.html')) continue;
+
+  const htmlPath = path.join(rawDir, file);
+  const textPath = path.join(parsedDir, file.replace('.html', '.txt'));
 
   try {
-    const html = await fs.readFile(rawPath, 'utf8');
+    const html = await fs.readFile(htmlPath, 'utf8');
     const dom = new JSDOM(html);
-    const text = dom.window.document.body.textContent || '';
-    const cleaned = text.replace(/\s+/g, ' ').trim(); // normalizza spazi
+    const text = dom.window.document.body.textContent.trim();
 
-    await fs.writeFile(parsedPath, cleaned);
-    console.log(`✅ Parsed: ${parsedPath}`);
+    await fs.writeFile(textPath, text);
+    console.log(`✅ ${file} → ${textPath}`);
   } catch (err) {
     console.error(`❌ Errore su ${file}: ${err.message}`);
   }
 }
+
+console.log('📄 Loader completato.');
