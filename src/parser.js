@@ -1,36 +1,33 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-// Setup path support
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Assicura cartella di output
+// Assicura che la cartella parsed/ esista
 await fs.mkdir('parsed', { recursive: true });
 
 // Leggi tutti i file nella cartella raw/
-const rawDir = path.join(__dirname, '..', 'raw');
-const files = await fs.readdir(rawDir);
+const files = await fs.readdir('raw');
 
-for (const file of files) {
-  if (!file.endsWith('.html')) continue;
+// Filtra solo i file HTML
+const htmlFiles = files.filter(file => file.endsWith('.html'));
 
-  const rawPath = path.join(rawDir, file);
-  const content = await fs.readFile(rawPath, 'utf8');
+for (const file of htmlFiles) {
+  const rawPath = path.join('raw', file);
+  const parsedPath = path.join('parsed', file.replace('.html', '.md'));
 
-  const output = {
-    source_id: file.replace('.html', ''),
-    extracted_text: content.slice(0, 500), // per ora primi 500 caratteri
-    metadata: {
-      length: content.length,
-      parsed_at: new Date().toISOString()
-    }
-  };
+  try {
+    const content = await fs.readFile(rawPath, 'utf8');
 
-  const outputPath = path.join(__dirname, '..', 'parsed', file.replace('.html', '.json'));
-  await fs.writeFile(outputPath, JSON.stringify(output, null, 2));
-  console.log(`✅ Salvato: ${outputPath}`);
+    // Conversione semplice: pulisci gli spazi e togli i tag HTML
+    const clean = content
+      .replace(/<[^>]*>/g, '')     // Rimuove i tag HTML
+      .replace(/\s+/g, ' ')        // Rimuove spazi ripetuti
+      .trim();                     // Rimuove spazi iniziali/finali
+
+    await fs.writeFile(parsedPath, clean);
+    console.log(`✅ parsed/${parsedPath} creato.`);
+  } catch (err) {
+    console.error(`❌ Errore su ${file}: ${err.message}`);
+  }
 }
 
-console.log('✨ Parsing completato');
+console.log('📦 Parser completato.');
