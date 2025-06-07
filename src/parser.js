@@ -1,36 +1,36 @@
 import fs from 'fs/promises';
-import { JSDOM } from 'jsdom';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Funzione per leggere e trasformare HTML in testo leggibile
-async function parseHTMLtoText(filePath) {
-  const htmlContent = await fs.readFile(filePath, 'utf8');
-  const dom = new JSDOM(htmlContent);
-  return dom.window.document.body.textContent.trim();
+// Setup path support
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Assicura cartella di output
+await fs.mkdir('parsed', { recursive: true });
+
+// Leggi tutti i file nella cartella raw/
+const rawDir = path.join(__dirname, '..', 'raw');
+const files = await fs.readdir(rawDir);
+
+for (const file of files) {
+  if (!file.endsWith('.html')) continue;
+
+  const rawPath = path.join(rawDir, file);
+  const content = await fs.readFile(rawPath, 'utf8');
+
+  const output = {
+    source_id: file.replace('.html', ''),
+    extracted_text: content.slice(0, 500), // per ora primi 500 caratteri
+    metadata: {
+      length: content.length,
+      parsed_at: new Date().toISOString()
+    }
+  };
+
+  const outputPath = path.join(__dirname, '..', 'parsed', file.replace('.html', '.json'));
+  await fs.writeFile(outputPath, JSON.stringify(output, null, 2));
+  console.log(`✅ Salvato: ${outputPath}`);
 }
 
-// Funzione principale del parser
-async function runParser() {
-  const rawDir = './raw';
-  const parsedDir = './parsed';
-
-  // Crea la cartella 'parsed' se non esiste
-  await fs.mkdir(parsedDir, { recursive: true });
-
-  // Leggi la lista dei file nella cartella 'raw'
-  const files = await fs.readdir(rawDir);
-
-  // Per ogni file HTML nella cartella 'raw'
-  for (const file of files) {
-    const text = await parseHTMLtoText(`${rawDir}/${file}`);
-
-    // Salva il testo pulito in un nuovo file Markdown nella cartella 'parsed'
-    const outputPath = `${parsedDir}/${file.replace('.html', '.md')}`;
-    await fs.writeFile(outputPath, text);
-    console.log(`✅ Creato file: ${outputPath}`);
-  }
-
-  console.log('🎉 Parser completato con successo!');
-}
-
-// Avvia il parser
-runParser().catch(err => console.error('Errore durante il parsing:', err));
+console.log('✨ Parsing completato');
