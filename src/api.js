@@ -1,14 +1,16 @@
-// src/api.js
 import express from 'express';
+import cors from 'cors';
 import fs from 'fs/promises';
-import path from 'path';
 import lunr from 'lunr';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const indexedDir = 'indexed';
-const app = express();
-const PORT = 3000;
+// Setup per __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Carica dati e indice
+const indexedDir = path.join(__dirname, '../indexed');
 const data = [];
 const files = await fs.readdir(indexedDir);
 for (const file of files) {
@@ -16,22 +18,29 @@ for (const file of files) {
   const doc = JSON.parse(await fs.readFile(path.join(indexedDir, file), 'utf8'));
   data.push(doc);
 }
-const idxRaw = JSON.parse(await fs.readFile(path.join(indexedDir, 'index.json'), 'utf8'));
-const idx = lunr.Index.load(idxRaw);
 
-// Preview migliorata e pulita
+const idxData = JSON.parse(await fs.readFile(path.join(indexedDir, 'index.json'), 'utf8'));
+const idx = lunr.Index.load(idxData);
+
 function makePreview(text, keyword) {
   const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
-  if (idx === -1) return text.replace(/[\r\n\t ]+/g, ' ').slice(0, 180) + "...";
-  // Finestra 80+80, parola evidenziata
+  if (idx === -1) return text.slice(0, 180) + "...";
   const start = Math.max(0, idx - 80);
   const end = Math.min(text.length, idx + keyword.length + 80);
-  let snippet = text.slice(start, end).replace(/[\r\n\t ]+/g, ' ');
-  snippet = snippet.replace(new RegExp(keyword, 'gi'), match => `***${match}***`);
+  let snippet = text.slice(start, end);
+  snippet = snippet.replace(
+    new RegExp(keyword, 'gi'),
+    match => `***${match}***`
+  );
   return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
 }
 
-// Endpoint ricerca
+const app = express();
+app.use(cors());
+
+// Serve anche i file statici da public/
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.get('/search', (req, res) => {
   const query = req.query.q || '';
   if (!query) return res.json([]);
@@ -46,6 +55,7 @@ app.get('/search', (req, res) => {
   res.json(out);
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 API pronta su http://localhost:${PORT}/search?q=YOUR_KEYWORD`);
+app.listen(3000, () => {
+  console.log('🚀 API pronta su http://localhost:3000/');
+  console.log('🌐 Apri il browser su http://localhost:3000/');
 });
