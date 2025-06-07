@@ -5,10 +5,12 @@
   "description": "Core codebase Varcavia",
   "dependencies": {
     "node-fetch": "^3.3.2",
-    "yaml": "^2.3.5"
+    "yaml": "^2.3.5",
+    "jsdom": "^24.0.0"
   },
   "scripts": {
-  "start": "node src/scraper.js",
-  "parse": "node src/parser.js",
-  "test": "echo \"OK\""
+    "start": "node src/scraper.js",
+    "parse": "node src/parser.js",
+    "test": "echo \"OK\""
+  }
 }
