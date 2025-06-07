@@ -3,25 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>VARCAVIA – Search Demo</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 32px; }
+    h1 { font-size: 2.2em; }
+    .result { margin: 18px 0; padding: 12px; border-bottom: 1px solid #eee; }
+    mark { background: #fff59d; font-weight: bold; }
+    .id { font-weight: bold; color: #222; margin-right: 10px; }
+  </style>
 </head>
 <body>
   <h1>VARCAVIA Search Demo</h1>
-  <input id="query" type="text" placeholder="Cerca...">
-  <button onclick="doSearch()">Cerca</button>
-  <ul id="results"></ul>
+  <form id="searchForm">
+    <input id="query" placeholder="Cerca..." value="publication">
+    <button type="submit">Cerca</button>
+  </form>
+  <div id="results"></div>
   <script>
-    async function doSearch() {
-      const q = document.getElementById('query').value;
-      const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      const ul = document.getElementById('results');
-      ul.innerHTML = '';
-      data.forEach(r => {
-        const li = document.createElement('li');
-        li.innerHTML = `<b>${r.id}</b>: ${r.preview}`;
-        ul.appendChild(li);
-      });
+    const form = document.getElementById('searchForm');
+    const resultsDiv = document.getElementById('results');
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      resultsDiv.innerHTML = "⏳ Cerco...";
+      const q = document.getElementById('query').value.trim();
+      const resp = await fetch(`/search?q=${encodeURIComponent(q)}`);
+      const data = await resp.json();
+      if (!data.length) {
+        resultsDiv.innerHTML = "<i>Nessun risultato.</i>";
+        return;
+      }
+      resultsDiv.innerHTML = data.map(r => `
+        <div class="result">
+          <span class="id">${r.id}:</span>
+          ${highlight(r.preview, q)}
+        </div>
+      `).join('');
+    };
+    function highlight(text, keyword) {
+      return text.replace(new RegExp(keyword, 'gi'), m => `<mark>${m}</mark>`);
     }
+    // Ricerca automatica all'avvio
+    form.dispatchEvent(new Event('submit'));
   </script>
 </body>
 </html>
