@@ -11,6 +11,7 @@
   "scripts": {
     "start": "node src/scraper.js",
     "parse": "node src/parser.js",
+    "load": "node src/loader.js",
     "test": "echo \"OK\""
   }
 }
