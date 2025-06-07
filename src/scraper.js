@@ -1,11 +1,17 @@
-// src/scraper.js
 import fs from 'fs/promises';
 import fetch from 'node-fetch';
 import yaml from 'yaml';
 
 // Carica registro fonti
-const text = await fs.readFile('config/registry.yaml', 'utf8');
-const { sources } = yaml.parse(text);
+let sources;
+try {
+  const text = await fs.readFile('config/registry.yaml', 'utf8');
+  ({ sources } = yaml.parse(text));
+  if (!sources) throw new Error('No sources found in registry.yaml');
+} catch (err) {
+  console.error('❌ Errore caricando registry.yaml:', err.message);
+  process.exit(1);
+}
 
 // Assicura esistenza cartella raw/
 await fs.mkdir('raw', { recursive: true });
@@ -25,10 +31,10 @@ for (const src of sources) {
     const body = await res.text();
     const path = `raw/${src.id}.html`;
     await fs.writeFile(path, body);
-    console.log(`    salvato ${path}`);
+    console.log(`    ✅ Salvato ${path}`);
   } catch (err) {
     status = 'fail';
-    console.error(`    errore: ${err.message}`);
+    console.error(`    ❌ Errore su ${src.id}: ${err.message}`);
   }
 
   // Append sul CSV (crea se non esiste)
