@@ -14,6 +14,11 @@ const now = new Date().toISOString();
 
 // Cicla su ogni fonte
 for (const src of sources) {
+  if (src.type !== 'html') {
+    console.log(`🔁 Skipping ${src.id} (${src.type})`);
+    continue;
+  }
+
   console.log(`--> ${src.id}  (${src.url})`);
   let status = 'ok';
   let httpStatus = 0;
@@ -29,6 +34,10 @@ for (const src of sources) {
     status = 'fail';
     console.error(`    errore: ${err.message}`);
   }
+
+  const line = `${src.id},${now},${status},${httpStatus},raw/${src.id}.html\n`;
+  await fs.appendFile('crawler_runs.csv', line);
+}
 
   // Append sul CSV (crea se non esiste)
   const line = `${src.id},${now},${status},${httpStatus},raw/${src.id}.html\n`;
