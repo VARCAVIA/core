@@ -2,51 +2,19 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Setup __dirname
+// Setup dirname per ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Percorsi cartelle
+// Cartella parsed
 const parsedDir = path.join(__dirname, '../parsed');
+// Cartella output indicizzato
 const indexedDir = path.join(__dirname, '../indexed');
 
-// Assicura che la cartella indexed/ esista
+// Crea cartella indexed se non esiste
 await fs.mkdir(indexedDir, { recursive: true });
 
-// Utility: pulizia base del testo
-function cleanText(text) {
-  return text
-    .replace(/^\s+|\s+$/gm, '')                  // Rimuove spazi iniziali/finali
-    .replace(/\n{2,}/g, '\n')                    // Rimuove righe vuote multiple
-    .replace(/Pagina \d+/gi, '')                 // Rimuove numeri di pagina
-    .replace(/^\s*Indice\s*$/gim, '')            // Rimuove "Indice"
-    .replace(/\s{2,}/g, ' ')                     // Spazi doppi
-    .trim();
-}
-
-// Utility: segmentazione in articoli/sezioni
-function splitIntoSections(text) {
-  const sections = [];
-  const lines = text.split('\n');
-  let current = { title: '', content: '' };
-
-  for (const line of lines) {
-    const match = line.match(/^(Art\.?\s?\d+|[0-9]+\.)\s*(.+)/i);
-    if (match) {
-      if (current.title) sections.push(current);
-      current = {
-        title: match[1].trim(),
-        content: match[2].trim()
-      };
-    } else {
-      current.content += ' ' + line.trim();
-    }
-  }
-  if (current.title) sections.push(current);
-  return sections;
-}
-
-// Leggi i file txt da parsed/
+// Leggi tutti i file .txt
 const files = await fs.readdir(parsedDir);
 
 for (const file of files) {
@@ -56,15 +24,26 @@ for (const file of files) {
   const outputPath = path.join(indexedDir, file.replace('.txt', '.json'));
 
   try {
-    const rawText = await fs.readFile(inputPath, 'utf8');
-    const cleaned = cleanText(rawText);
-    const sections = splitIntoSections(cleaned);
+    const text = await fs.readFile(inputPath, 'utf8');
 
-    await fs.writeFile(outputPath, JSON.stringify(sections, null, 2));
-    console.log(`📚 Indicizzato ${file} → ${outputPath}`);
+    // Normalizzazione e suddivisione in paragrafi/righe
+    const sections = text
+      .split(/\n{2,}/) // separa per due o più newline
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const structured = sections.map((section, i) => ({
+      id: `${file}-${i + 1}`,
+      file: file,
+      section: i + 1,
+      text: section,
+    }));
+
+    await fs.writeFile(outputPath, JSON.stringify(structured, null, 2), 'utf8');
+    console.log(`✅ Indicizzato ${file} in ${outputPath}`);
   } catch (err) {
     console.error(`❌ Errore su ${file}: ${err.message}`);
   }
 }
 
-console.log('🧠 Indicizzazione completata.');
+console.log('📚 Indicizzazione completata.');
