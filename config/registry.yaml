@@ -54,6 +54,12 @@ sources:
     type: html
     frequency: weekly
 
+    - id: worldbank
+    name: World Bank
+    url: https://www.worldbank.org/en/news/all
+    parser: html
+    note: Sorgente dati economico-finanziari globale
+
   - id: cnmv
     name: CNMV Spain Communications
     url: https://www.cnmv.es/portal/HR/resultado-busqueda.aspx?lang=en
