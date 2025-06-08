@@ -3,13 +3,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
-import { fileURLToPath } from 'url';
+import yaml from 'yaml';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const rawDir = 'raw';
+const parsedDir = 'parsed';
 
-const rawDir = path.join(__dirname, '../raw');
-const parsedDir = path.join(__dirname, '../parsed');
+// Carica la lista fonti per ottenere i nomi
+const sources = yaml.parse(await fs.readFile('config/registry.yaml', 'utf8')).sources;
 
 await fs.mkdir(parsedDir, { recursive: true });
 
@@ -17,25 +17,36 @@ const files = await fs.readdir(rawDir);
 
 for (const file of files) {
   if (!file.endsWith('.html')) continue;
+  const id = path.basename(file, '.html');
+  const html = await fs.readFile(path.join(rawDir, file), 'utf8');
 
-  const htmlPath = path.join(rawDir, file);
-  const textPath = path.join(parsedDir, file.replace('.html', '.txt'));
+  // Estrazione via Readability
+  const dom = new JSDOM(html);
+  const reader = new Readability(dom.window.document);
+  const article = reader.parse();
 
-  try {
-    const html = await fs.readFile(htmlPath, 'utf8');
-    const dom = new JSDOM(html, { url: "https://fake.base/" });
-    // Applica Readability per pulizia superiore
-    const reader = new Readability(dom.window.document);
-    const article = reader.parse();
-    const cleanText = (article && article.textContent)
-      ? article.textContent.trim()
-      : dom.window.document.body.textContent.trim();
+  // Recupera title e testo principale
+  const title = article?.title || '';
+  const text = article?.textContent || '';
 
-    await fs.writeFile(textPath, cleanText);
-    console.log(`✅ ${file} → ${textPath}`);
-  } catch (err) {
-    console.error(`❌ Errore su ${file}: ${err.message}`);
-  }
+  // Data di scraping come fallback (migliorabile in seguito con pattern sul testo)
+  const date = new Date().toISOString();
+
+  // Info fonte
+  const sourceObj = sources.find(s => s.id === id);
+  const source = sourceObj ? sourceObj.name : id;
+
+  // Salva JSON con metadati
+  const parsedObj = {
+    id,
+    title,
+    date,
+    source,
+    text
+  };
+  await fs.writeFile(path.join(parsedDir, `${id}.txt`), text);
+  await fs.writeFile(path.join(parsedDir, `${id}.json`), JSON.stringify(parsedObj, null, 2));
+
+  console.log(`✅ ${file} → ${path.resolve(parsedDir, id + '.txt')}, metadati estratti`);
 }
-
-console.log('📄 Loader completato.');
+console.log('📄 Loader completato (metadati inclusi).');
