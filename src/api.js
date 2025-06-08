@@ -6,18 +6,26 @@ import path from 'path';
 import cors from 'cors';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+const INDEX_DIR = 'indexed';
+const PUBLIC_DIR = 'public';
+
+// 1) Abilita CORS
 app.use(cors());
 
-const INDEX_DIR = 'indexed';
+// 2) Servi la UI statica
+app.use(express.static(PUBLIC_DIR));
 
-app.get('/search', async (req, res) => {
+// 3) Endpoint di ricerca
+app.get('/api/search', async (req, res) => {
   try {
     const q = req.query.q ? req.query.q.toLowerCase() : '';
     const source = req.query.source;
-    const period = req.query.period;
-    let allResults = [];
+    // (se useremo filtro periodo in futuro:) const period = req.query.period;
 
+    // Carica tutti i documenti JSON
     const files = await fs.readdir(INDEX_DIR);
+    let allResults = [];
 
     for (const file of files) {
       if (!file.endsWith('.json')) continue;
@@ -25,37 +33,40 @@ app.get('/search', async (req, res) => {
       let data;
       try {
         data = JSON.parse(content);
-      } catch (e) {
-        continue; // Salta file malformati
+      } catch {
+        continue; // salta JSON malformati
       }
-      // Data può essere array o oggetto singolo: normalizza sempre ad array
+      // Normalizza sempre ad array
       const docs = Array.isArray(data) ? data : [data];
       allResults.push(...docs);
     }
 
-    // Ora allResults è sempre un array
+    // Filtri
     let results = allResults;
-
     if (q) {
       results = results.filter(doc =>
-        doc.preview?.toLowerCase().includes(q) ||
-        doc.title?.toLowerCase().includes(q) ||
-        doc.id?.toLowerCase().includes(q)
+        (doc.preview  || '').toLowerCase().includes(q) ||
+        (doc.title    || '').toLowerCase().includes(q) ||
+        (doc.source   || '').toLowerCase().includes(q)
       );
     }
     if (source && source !== 'all') {
       results = results.filter(doc => doc.source === source);
     }
-    // (Aggiungi qui eventuali filtri periodo ecc.)
 
     res.json(results);
   } catch (error) {
-    // Log su file (opzionale), qui solo stdout
     console.error({ ts: new Date().toISOString(), event: 'error', error: error.message });
     res.status(500).json({ error: 'API error' });
   }
 });
 
-app.listen(3000, () => {
-  console.log('API running on http://localhost:3000');
+// 4) Catch-all per SPA (opzionale: riporta sempre index.html)
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(PUBLIC_DIR, 'index.html'));
+});
+
+// 5) Avvia il server
+app.listen(PORT, () => {
+  console.log(`🔗 API+UI server running at http://localhost:${PORT}`);
 });
