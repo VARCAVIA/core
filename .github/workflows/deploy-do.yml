@@ -1,0 +1,18 @@
+name: Deploy to DigitalOcean App Platform
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to DO App Platform
+        uses: digitalocean/app-action@v1
+        with:
+          spec: .do/app.yaml
+          token: ${{ secrets.DO_API_TOKEN }}
