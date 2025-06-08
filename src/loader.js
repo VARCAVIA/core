@@ -1,27 +1,19 @@
+// src/loader.js
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { JSDOM } from 'jsdom';
+import { Readability } from '@mozilla/readability';
+import { fileURLToPath } from 'url';
 
-// Setup per __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const rawDir = path.join(__dirname, '../raw');
 const parsedDir = path.join(__dirname, '../parsed');
 
-// Assicura cartella parsed/
 await fs.mkdir(parsedDir, { recursive: true });
 
-let files;
-try {
-  files = await fs.readdir(rawDir);
-} catch (err) {
-  console.error('❌ Errore leggendo la cartella raw/:', err.message);
-  process.exit(1);
-}
-
-let counter = 0;
+const files = await fs.readdir(rawDir);
 
 for (const file of files) {
   if (!file.endsWith('.html')) continue;
@@ -31,15 +23,19 @@ for (const file of files) {
 
   try {
     const html = await fs.readFile(htmlPath, 'utf8');
-    const dom = new JSDOM(html);
-    const text = dom.window.document.body.textContent.trim();
+    const dom = new JSDOM(html, { url: "https://fake.base/" });
+    // Applica Readability per pulizia superiore
+    const reader = new Readability(dom.window.document);
+    const article = reader.parse();
+    const cleanText = (article && article.textContent)
+      ? article.textContent.trim()
+      : dom.window.document.body.textContent.trim();
 
-    await fs.writeFile(textPath, text);
+    await fs.writeFile(textPath, cleanText);
     console.log(`✅ ${file} → ${textPath}`);
-    counter++;
   } catch (err) {
     console.error(`❌ Errore su ${file}: ${err.message}`);
   }
 }
 
-console.log(`📄 Loader completato. (${counter} file convertiti)`);
+console.log('📄 Loader completato.');
