@@ -1,73 +1,41 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Varcavia Universal Data Search</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    .result-card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 18px; background: #fff; box-shadow: 0 1px 8px #eee;}
-    .result-title { font-weight: bold; font-size: 1.1em; }
-    .label { font-weight: bold; }
-    .header { display: flex; align-items: center; gap: 12px; }
-    .icon { font-size: 2em; }
-    .search-bar { margin-bottom: 24px; }
-    input, select { font-size: 1em; padding: 4px 6px; }
-  </style>
+  <title>Varcavia Search MVP</title>
 </head>
 <body>
-  <div class="header">
-    <span class="icon">🔎</span>
-    <h2>Varcavia Universal Data Search</h2>
-  </div>
-  <div class="search-bar">
-    <label>Testo: <input id="query" type="text" /></label>
+  <h1>🔍 Varcavia Universal Data Search</h1>
+  <form id="f">
+    <label>Testo: <input type="text" id="q"></label>
     <label>Fonte:
       <select id="source">
         <option value="all">Tutte</option>
-        <option value="eba">EBA</option>
-        <option value="eur-oj">Official Journal EU</option>
-        <option value="esma">ESMA</option>
-        <option value="it-gazzetta">Gazzetta Ufficiale</option>
-        <option value="worldbank">World Bank</option>
-        <option value="cnmv">CNMV</option>
-        <!-- aggiungi altre fonti qui -->
+        <!-- Popola dinamicamente o staticamente con option value="eba">EBA</option>, ecc. -->
       </select>
     </label>
-    <button onclick="search()">Cerca</button>
-  </div>
+    <button type="submit">Cerca</button>
+  </form>
   <div id="results"></div>
 
   <script>
-    async function search() {
-      const q = document.getElementById('query').value;
+    document.getElementById('f').onsubmit = async e => {
+      e.preventDefault();
+      const q = document.getElementById('q').value;
       const source = document.getElementById('source').value;
-      let url = `http://localhost:3000/search?q=${encodeURIComponent(q)}`;
-      if (source && source !== 'all') url += `&source=${encodeURIComponent(source)}`;
-      const res = await fetch(url);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&source=${encodeURIComponent(source)}`);
       const data = await res.json();
-      render(data);
-    }
-    function render(results) {
-      const el = document.getElementById('results');
-      if (!Array.isArray(results)) {
-        el.innerHTML = `<div style="color:red;">Errore: risposta inattesa dall'API</div>`;
-        return;
-      }
-      if (!results.length) {
-        el.innerHTML = "<em>Nessun risultato.</em>";
-        return;
-      }
-      el.innerHTML = results.map(r => `
-        <div class="result-card">
-          <div class="result-title">${r.title || '(Nessun titolo)'}</div>
-          <div><span class="label">Fonte:</span> ${r.source || '-'} | <span class="label">Data:</span> ${r.timestamp || '-'}</div>
-          <div><span class="label">Hash:</span> ${r.hash || '-'}</div>
-          <pre style="white-space:pre-line;margin-top:10px;">${r.preview || ''}</pre>
-        </div>
-      `).join('');
-    }
-    // Facoltativo: auto-search all'avvio (opzionale)
-    // window.onload = search;
+      const container = document.getElementById('results');
+      container.innerHTML = data.length 
+        ? data.map(d => `
+            <div style="border:1px solid #ccc;margin:10px;padding:10px;">
+              <strong>${d.title || d.id}</strong><br>
+              Fonte: ${d.source} — Preview: ${d.preview}
+            </div>
+          `).join('')
+        : '<p>Nessun risultato</p>';
+    };
   </script>
 </body>
 </html>
