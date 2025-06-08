@@ -2,55 +2,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Varcavia Search MVP</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f8f8f8; color: #222; }
-    .container { max-width: 700px; margin: 50px auto; padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0002; }
-    h1 { color: #1166cc; }
-    input[type="text"] { width: 80%; padding: 10px; font-size: 1em; }
-    button { padding: 10px 18px; font-size: 1em; background: #1166cc; color: #fff; border: none; border-radius: 4px; cursor: pointer;}
-    .result { margin: 20px 0 24px 0; padding: 12px; background: #e6f0fa; border-radius: 5px; border-left: 4px solid #1166cc;}
-    .hash { font-size: 0.7em; color: #888;}
-    .timestamp { font-size: 0.9em; color: #555; }
-    .preview { margin-top: 6px; font-family: monospace; }
-    .source { font-size: 0.85em; color: #004477; }
+    body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; background: #fcfcfc; }
+    input, select { margin: 0.2em 0.5em 0.2em 0; padding: 0.3em; }
+    .result { background: #fff; margin: 1em 0; padding: 1em; border-radius: 8px; box-shadow: 0 1px 4px #0001; }
+    .preview { color: #444; font-size: 1em; margin-top: 0.2em; white-space: pre-wrap; }
+    .meta { font-size: 0.9em; color: #666; }
+    label { font-weight: bold; }
+    .filters { margin-bottom: 1em; }
+    .id { font-size: 0.7em; color: #bbb; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🔍 Varcavia Universal Search MVP</h1>
-    <form id="searchForm">
-      <input type="text" id="query" placeholder="Search any keyword..." autocomplete="off" />
-      <button type="submit">Search</button>
-    </form>
-    <div id="results"></div>
+  <h2>🔎 Varcavia Universal Data Search</h2>
+  <div class="filters">
+    <label>Testo:</label>
+    <input id="q" placeholder="Cerca..."> 
+    <label>Fonte:</label>
+    <select id="source">
+      <option value="">Tutte</option>
+      <option value="eba">EBA</option>
+      <option value="esma">ESMA</option>
+      <option value="eur-oj">EU Official Journal</option>
+      <option value="it-gazzetta">Gazzetta IT</option>
+      <option value="cnmv">CNMV</option>
+      <option value="worldbank">World Bank</option>
+    </select>
+    <label>Periodo:</label>
+    <input id="date" placeholder="AAAA-MM (opz.)" size="7">
+    <button onclick="search()">Cerca</button>
   </div>
-  <script>
-    const form = document.getElementById('searchForm');
-    const resultsDiv = document.getElementById('results');
-
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const q = document.getElementById('query').value.trim();
-      if (!q) return;
-      resultsDiv.innerHTML = 'Searching...';
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      if (!data.length) {
-        resultsDiv.innerHTML = '<b>No results.</b>';
-        return;
-      }
-      resultsDiv.innerHTML = data.map(d =>
-        `<div class="result">
-          <div class="timestamp">🗓️ ${d.timestamp}</div>
-          <div class="source"><b>Source:</b> ${d.source}</div>
-          <div class="hash"><b>Hash:</b> ${d.hash}</div>
-          <div><b>Title:</b> ${d.title}</div>
-          <div class="preview">${d.preview}</div>
-        </div>`
-      ).join('');
-    };
-  </script>
+  <div id="results">Risultati...</div>
+<script>
+async function search() {
+  const q = document.getElementById('q').value.trim();
+  const source = document.getElementById('source').value.trim();
+  const date = document.getElementById('date').value.trim();
+  let query = q;
+  if (source) query += ` source:${source}`;
+  if (date) query += ` date:${date}`;
+  const res = await fetch(`http://localhost:3000/search?q=${encodeURIComponent(query)}`);
+  const out = await res.json();
+  let html = `<b>${out.length}</b> risultati.<br>`;
+  for (const r of out) {
+    html += `
+      <div class="result">
+        <div class="meta">
+          <b>${r.title || '—'}</b> <span class="id">${r.id}</span><br>
+          <span><b>Fonte:</b> ${r.source || '-'}</span>
+          <span><b>Data:</b> ${r.date || '-'}</span>
+          <span><b>Hash:</b> ${r.hash ? r.hash.slice(0, 8) : '-'}</span>
+          <span><b>Timestamp:</b> ${r.timestamp ? r.timestamp.slice(0, 16) : '-'}</span>
+        </div>
+        <div class="preview">${r.preview}</div>
+      </div>
+    `;
+  }
+  document.getElementById('results').innerHTML = html;
+}
+window.onload = search;
+</script>
 </body>
 </html>
