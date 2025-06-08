@@ -1,0 +1,17 @@
+# .do/app.yaml
+name: varcavia-core
+region: fra
+services:
+  - name: api
+    github:
+      repo: VARCAVIA/core
+      branch: main
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    health_check:
+      http_path: /health
+    envs:
+      - key: NODE_ENV
+        value: "production"
