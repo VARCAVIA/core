@@ -1,48 +1,56 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>VARCAVIA – Search Demo</title>
+  <meta charset="UTF-8" />
+  <title>Varcavia Search MVP</title>
   <style>
-    body { font-family: Georgia, serif; margin: 32px; }
-    h1 { font-size: 2.2em; }
-    .result { margin: 18px 0; padding: 12px; border-bottom: 1px solid #eee; }
-    mark { background: #fff59d; font-weight: bold; }
-    .id { font-weight: bold; color: #222; margin-right: 10px; }
+    body { font-family: Arial, sans-serif; background: #f8f8f8; color: #222; }
+    .container { max-width: 700px; margin: 50px auto; padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0002; }
+    h1 { color: #1166cc; }
+    input[type="text"] { width: 80%; padding: 10px; font-size: 1em; }
+    button { padding: 10px 18px; font-size: 1em; background: #1166cc; color: #fff; border: none; border-radius: 4px; cursor: pointer;}
+    .result { margin: 20px 0 24px 0; padding: 12px; background: #e6f0fa; border-radius: 5px; border-left: 4px solid #1166cc;}
+    .hash { font-size: 0.7em; color: #888;}
+    .timestamp { font-size: 0.9em; color: #555; }
+    .preview { margin-top: 6px; font-family: monospace; }
+    .source { font-size: 0.85em; color: #004477; }
   </style>
 </head>
 <body>
-  <h1>VARCAVIA Search Demo</h1>
-  <form id="searchForm">
-    <input id="query" placeholder="Cerca..." value="publication">
-    <button type="submit">Cerca</button>
-  </form>
-  <div id="results"></div>
+  <div class="container">
+    <h1>🔍 Varcavia Universal Search MVP</h1>
+    <form id="searchForm">
+      <input type="text" id="query" placeholder="Search any keyword..." autocomplete="off" />
+      <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+  </div>
   <script>
     const form = document.getElementById('searchForm');
     const resultsDiv = document.getElementById('results');
+
     form.onsubmit = async (e) => {
       e.preventDefault();
-      resultsDiv.innerHTML = "⏳ Cerco...";
       const q = document.getElementById('query').value.trim();
-      const resp = await fetch(`/search?q=${encodeURIComponent(q)}`);
-      const data = await resp.json();
+      if (!q) return;
+      resultsDiv.innerHTML = 'Searching...';
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
       if (!data.length) {
-        resultsDiv.innerHTML = "<i>Nessun risultato.</i>";
+        resultsDiv.innerHTML = '<b>No results.</b>';
         return;
       }
-      resultsDiv.innerHTML = data.map(r => `
-        <div class="result">
-          <span class="id">${r.id}:</span>
-          ${highlight(r.preview, q)}
-        </div>
-      `).join('');
+      resultsDiv.innerHTML = data.map(d =>
+        `<div class="result">
+          <div class="timestamp">🗓️ ${d.timestamp}</div>
+          <div class="source"><b>Source:</b> ${d.source}</div>
+          <div class="hash"><b>Hash:</b> ${d.hash}</div>
+          <div><b>Title:</b> ${d.title}</div>
+          <div class="preview">${d.preview}</div>
+        </div>`
+      ).join('');
     };
-    function highlight(text, keyword) {
-      return text.replace(new RegExp(keyword, 'gi'), m => `<mark>${m}</mark>`);
-    }
-    // Ricerca automatica all'avvio
-    form.dispatchEvent(new Event('submit'));
   </script>
 </body>
 </html>
