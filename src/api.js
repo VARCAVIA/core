@@ -1,32 +1,45 @@
+// src/api.js
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
-import lunr from 'lunr';
 import path from 'path';
+import lunr from 'lunr';
+import crypto from 'crypto';
 
 const app = express();
-app.use(cors());
+const PORT = 3000;
 
-const DATA_PATH = 'indexed';
-const INDEX_FILE = path.join(DATA_PATH, 'index.json');
+// Carica tutti i documenti indicizzati (JSON singoli) e l'indice
+const indexedDir = 'indexed';
+const indexData = JSON.parse(
+  await fs.readFile(path.join(indexedDir, 'index.json'), 'utf8')
+);
 
-function cleanText(text) {
-  // Rimuove simboli ripetuti, spazi, header/footer rumorosi (grezzo, migliorabile)
-  return text
-    .replace(/\*\*\*/g, '')    // Rimuove ***
-    .replace(/\r?\n|\r/g, ' ') // Rende tutto una riga
-    .replace(/\s+/g, ' ')      // Spazi multipli
-    .trim();
+// Costruisci lunr in modalità compatibile
+const idx = lunr.Index.load(indexData);
+
+// Carica tutti i documenti indicizzati in memoria
+const files = await fs.readdir(indexedDir);
+const data = [];
+for (const file of files) {
+  if (!file.endsWith('.json') || file === 'index.json') continue;
+  const doc = JSON.parse(await fs.readFile(path.join(indexedDir, file), 'utf8'));
+  // Ricava timestamp dal file system
+  const stat = await fs.stat(path.join(indexedDir, file));
+  data.push({
+    ...doc,
+    hash: doc.hash, // già presente da indexer.js
+    timestamp: stat.birthtime.toISOString(), // creazione file
+  });
 }
 
+// Funzione preview “demo ready”
 function makePreview(text, keyword) {
   const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
-  if (idx === -1) return cleanText(text).slice(0, 180) + "...";
-  // Estrae 80 caratteri prima e 80 dopo la parola trovata
+  if (idx === -1) return text.slice(0, 180) + "...";
   const start = Math.max(0, idx - 80);
   const end = Math.min(text.length, idx + keyword.length + 80);
-  let snippet = cleanText(text.slice(start, end));
-  // Evidenzia la parola chiave con ***
+  let snippet = text.slice(start, end);
   snippet = snippet.replace(
     new RegExp(keyword, 'gi'),
     match => `***${match}***`
@@ -34,45 +47,27 @@ function makePreview(text, keyword) {
   return (start > 0 ? "..." : "") + snippet + (end < text.length ? "..." : "");
 }
 
-let idx;
-let docs = [];
+app.use(cors());
 
-async function loadData() {
-  // Carica tutti i .json singoli, ignora index.json
-  const files = (await fs.readdir(DATA_PATH)).filter(f => f.endsWith('.json') && f !== 'index.json');
-  docs = [];
-  for (const file of files) {
-    const d = JSON.parse(await fs.readFile(path.join(DATA_PATH, file), 'utf8'));
-    docs.push({
-      id: d.id,
-      text: cleanText(d.text),
-      // Estrai titolo dalle prime 120 lettere (migliorabile)
-      title: cleanText(d.text).slice(0, 120) + "...",
-      source: d.id
-    });
-  }
-  // Carica l'indice (serializzato con lunr)
-  const rawIdx = JSON.parse(await fs.readFile(INDEX_FILE, 'utf8'));
-  idx = lunr.Index.load(rawIdx);
-}
+app.get('/api/search', (req, res) => {
+  const query = req.query.q || '';
+  if (!query.trim()) return res.json([]);
 
-await loadData();
-
-app.get('/search', (req, res) => {
-  const query = (req.query.q || '').toString().trim();
-  if (!query) return res.json([]);
   const results = idx.search(query);
-  res.json(results.map(({ ref }) => {
-    const doc = docs.find(d => d.id === ref);
+  const out = results.map(({ ref }) => {
+    const doc = data.find(d => d.id === ref);
     return {
       id: doc.id,
-      title: doc.title,
-      source: doc.source,
-      preview: makePreview(doc.text, query)
+      hash: doc.hash,
+      timestamp: doc.timestamp,
+      preview: makePreview(doc.text, query),
+      title: doc.text.slice(0, 120).replace(/\s+/g, " ") + "...",
+      source: doc.id,
     };
-  }));
+  });
+  res.json(out);
 });
 
-app.listen(3000, () => {
-  console.log('✅ API avviata su http://localhost:3000');
-});
+app.listen(PORT, () =>
+  console.log(`🚀 API pronta su http://localhost:${PORT}/api/search?q=...`)
+);
