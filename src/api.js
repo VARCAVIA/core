@@ -1,61 +1,61 @@
 // src/api.js
+
 import express from 'express';
-import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
+import cors from 'cors';
 
 const app = express();
-const PORT = 3000;
+app.use(cors());
 
-// Logging minimal JSON (file + stdout)
-function log(event, data = {}) {
-  const entry = { ts: new Date().toISOString(), event, ...data };
-  fs.appendFile('history/api.log', JSON.stringify(entry) + '\n').catch(() => {});
-  console.log(JSON.stringify(entry));
-}
+const INDEX_DIR = 'indexed';
 
-// Abilita solo richieste dalla stessa macchina/localhost (CORS minimo)
-const corsOptions = {
-  origin: [/^http:\/\/localhost/, /^file:\/\//],
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
-
-// Blocca flood: max 10 richieste/sec per IP
-let requests = {};
-setInterval(() => { requests = {}; }, 1000);
-app.use((req, res, next) => {
-  const ip = req.ip || req.connection.remoteAddress;
-  requests[ip] = (requests[ip] || 0) + 1;
-  if (requests[ip] > 10) {
-    log('blocked', { ip, url: req.url });
-    return res.status(429).json({ error: "Too Many Requests" });
-  }
-  next();
-});
-
-// Ricerca dati
 app.get('/search', async (req, res) => {
   try {
-    log('search', { q: req.query.q || '' });
-    const idxFile = await fs.readFile('indexed/index.json', 'utf-8');
-    let results = JSON.parse(idxFile);
+    const q = req.query.q ? req.query.q.toLowerCase() : '';
+    const source = req.query.source;
+    const period = req.query.period;
+    let allResults = [];
 
-    const q = (req.query.q || '').toLowerCase();
-    // Ricerca semplice su più campi
-    results = results.filter(d =>
-      (!q || JSON.stringify(d).toLowerCase().includes(q))
-    );
-    // Ordinamento: data discendente, poi rilevanza futura
-    results = results.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    res.json(results.slice(0, 20));
-  } catch (e) {
-    log('error', { error: e.message });
-    res.status(500).json({ error: "API error" });
+    const files = await fs.readdir(INDEX_DIR);
+
+    for (const file of files) {
+      if (!file.endsWith('.json')) continue;
+      const content = await fs.readFile(path.join(INDEX_DIR, file), 'utf-8');
+      let data;
+      try {
+        data = JSON.parse(content);
+      } catch (e) {
+        continue; // Salta file malformati
+      }
+      // Data può essere array o oggetto singolo: normalizza sempre ad array
+      const docs = Array.isArray(data) ? data : [data];
+      allResults.push(...docs);
+    }
+
+    // Ora allResults è sempre un array
+    let results = allResults;
+
+    if (q) {
+      results = results.filter(doc =>
+        doc.preview?.toLowerCase().includes(q) ||
+        doc.title?.toLowerCase().includes(q) ||
+        doc.id?.toLowerCase().includes(q)
+      );
+    }
+    if (source && source !== 'all') {
+      results = results.filter(doc => doc.source === source);
+    }
+    // (Aggiungi qui eventuali filtri periodo ecc.)
+
+    res.json(results);
+  } catch (error) {
+    // Log su file (opzionale), qui solo stdout
+    console.error({ ts: new Date().toISOString(), event: 'error', error: error.message });
+    res.status(500).json({ error: 'API error' });
   }
 });
 
-app.listen(PORT, () => {
-  log('start', { port: PORT });
-  console.log(`API running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log('API running on http://localhost:3000');
 });
