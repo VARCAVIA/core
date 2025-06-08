@@ -4,6 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Varcavia Search MVP</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .result { border:1px solid #ccc; padding:10px; margin:10px 0; }
+    .title { font-weight: bold; }
+    .meta  { color: #666; margin-bottom:5px; }
+  </style>
 </head>
 <body>
   <h1>🔍 Varcavia Universal Data Search</h1>
@@ -12,7 +18,17 @@
     <label>Fonte:
       <select id="source">
         <option value="all">Tutte</option>
-        <!-- Popola dinamicamente o staticamente con option value="eba">EBA</option>, ecc. -->
+        <option value="eur-oj">EUR-OJ</option>
+        <option value="sec-edgar">SEC-EDGAR</option>
+        <option value="it-gazzetta">Gazzetta</option>
+        <option value="bankitalia">BankItalia</option>
+        <option value="esma">ESMA</option>
+        <option value="fincen">FinCEN</option>
+        <option value="fca-uk">FCA-UK</option>
+        <option value="bafin">BaFin</option>
+        <option value="eba">EBA</option>
+        <option value="worldbank">WorldBank</option>
+        <option value="cnmv">CNMV</option>
       </select>
     </label>
     <button type="submit">Cerca</button>
@@ -24,17 +40,22 @@
       e.preventDefault();
       const q = document.getElementById('q').value;
       const source = document.getElementById('source').value;
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&source=${encodeURIComponent(source)}`);
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(q)}&source=${encodeURIComponent(source)}`
+      );
       const data = await res.json();
-      const container = document.getElementById('results');
-      container.innerHTML = data.length 
-        ? data.map(d => `
-            <div style="border:1px solid #ccc;margin:10px;padding:10px;">
-              <strong>${d.title || d.id}</strong><br>
-              Fonte: ${d.source} — Preview: ${d.preview}
-            </div>
-          `).join('')
-        : '<p>Nessun risultato</p>';
+      const c = document.getElementById('results');
+      if (!data.length) {
+        c.innerHTML = '<p>Nessun risultato</p>';
+        return;
+      }
+      c.innerHTML = data.map(d => `
+        <div class="result">
+          <div class="title">${d.title||d.id}</div>
+          <div class="meta">Fonte: ${d.source} — Hash: ${d.hash||'-'} — Data: ${d.timestamp||'-'}</div>
+          <div>${d.preview}</div>
+        </div>
+      `).join('');
     };
   </script>
 </body>
