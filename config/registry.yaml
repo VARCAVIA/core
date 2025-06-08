@@ -54,10 +54,11 @@ sources:
     type: html
     frequency: weekly
 
-    - id: worldbank
+  - id: worldbank
     name: World Bank
     url: https://www.worldbank.org/en/news/all
-    parser: html
+    type: html
+    frequency: weekly
     note: Sorgente dati economico-finanziari globale
 
   - id: cnmv
