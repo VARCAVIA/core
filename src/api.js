@@ -1,5 +1,4 @@
 // src/api.js
-
 import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
@@ -10,63 +9,60 @@ const PORT = process.env.PORT || 3000;
 const INDEX_DIR = 'indexed';
 const PUBLIC_DIR = 'public';
 
-// 1) Abilita CORS
-app.use(cors());
+// Funktion per creare lo snippet
+function makePreview(text = '', keyword = '') {
+  const lower = text.toLowerCase();
+  const idx   = lower.indexOf(keyword.toLowerCase());
+  if (idx === -1) return text.slice(0, 180) + '…';
+  const start = Math.max(0, idx - 80);
+  const end   = Math.min(text.length, idx + keyword.length + 80);
+  let snip = text.slice(start, end);
+  // evidenzia
+  snip = snip.replace(new RegExp(keyword, 'gi'), m => `***${m}***`);
+  return (start>0?'…':'') + snip + (end<text.length?'…':'');
+}
 
-// 2) Servi la UI statica
+// 1) CORS
+app.use(cors());
+// 2) Static UI
 app.use(express.static(PUBLIC_DIR));
 
-// 3) Endpoint di ricerca
+// 3) Ricerca
 app.get('/api/search', async (req, res) => {
   try {
-    const q = req.query.q ? req.query.q.toLowerCase() : '';
-    const source = req.query.source;
-    // (se useremo filtro periodo in futuro:) const period = req.query.period;
-
-    // Carica tutti i documenti JSON
+    const q = req.query.q || '';
+    const srcFilter = req.query.source;
+    // carica tutti i json
     const files = await fs.readdir(INDEX_DIR);
-    let allResults = [];
-
-    for (const file of files) {
-      if (!file.endsWith('.json')) continue;
-      const content = await fs.readFile(path.join(INDEX_DIR, file), 'utf-8');
-      let data;
-      try {
-        data = JSON.parse(content);
-      } catch {
-        continue; // salta JSON malformati
-      }
-      // Normalizza sempre ad array
-      const docs = Array.isArray(data) ? data : [data];
-      allResults.push(...docs);
+    let docs = [];
+    for (const f of files) {
+      if (!f.endsWith('.json')) continue;
+      const data = JSON.parse(await fs.readFile(path.join(INDEX_DIR, f), 'utf8'));
+      docs.push(data);
     }
-
-    // Filtri
-    let results = allResults;
-    if (q) {
-      results = results.filter(doc =>
-        (doc.preview  || '').toLowerCase().includes(q) ||
-        (doc.title    || '').toLowerCase().includes(q) ||
-        (doc.source   || '').toLowerCase().includes(q)
-      );
-    }
-    if (source && source !== 'all') {
-      results = results.filter(doc => doc.source === source);
-    }
-
+    // filtri testo/fonte
+    let results = docs.filter(d =>
+      (!q || (d.text||'').toLowerCase().includes(q.toLowerCase())) &&
+      (!srcFilter || srcFilter==='all' || d.source===srcFilter)
+    );
+    // aggiungi preview
+    results = results.map(d => ({
+      ...d,
+      preview: makePreview(d.text, q)
+    }));
     res.json(results);
-  } catch (error) {
-    console.error({ ts: new Date().toISOString(), event: 'error', error: error.message });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'API error' });
   }
 });
 
-// 4) Catch-all per SPA (opzionale: riporta sempre index.html)
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(PUBLIC_DIR, 'index.html'));
-});
+// 4) Catch-all per SPA
+app.get('*', (req, res) =>
+  res.sendFile(path.resolve(PUBLIC_DIR, 'index.html'))
+);
 
-// 5) Avvia il server
-app.listen(PORT, () => {
-  console.log(`🔗 API+UI server running at http://localhost:${PORT}`);
-});
+// 5) Avvio
+app.listen(PORT, () =>
+  console.log(`🔗 API+UI server running at http://localhost:${PORT}`)
+);
