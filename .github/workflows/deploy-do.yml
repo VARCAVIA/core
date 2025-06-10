@@ -1,5 +1,7 @@
 name: Deploy to DigitalOcean App Platform
+
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -8,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy
+
+      - name: Deploy image from Docker Hub
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DO_API_TOKEN }}
           project_id: ${{ secrets.DO_PROJECT_ID }}
           app_spec_location: .do/app.yaml
+          app_name: varcavia-core
