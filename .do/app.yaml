@@ -4,7 +4,8 @@ region: fra1
 services:
   - name: api
     image:
-      registry_type: DOCKER_HUB
+      registry_type: DOCKER_HUB      # obbligatorio
+      registry: docker.io
       repository: margaricca/varcavia-core
       tag: latest
     http_port: 3000
