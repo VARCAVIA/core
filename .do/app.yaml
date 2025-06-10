@@ -1,8 +1,14 @@
 name: varcavia-core
 region: fra1
+
 services:
   - name: api
-    dockerfile_path: Dockerfile
+    image:
+      registry_type: DOCKER_HUB
+      repository: margaricca/varcavia-core
+      tag: latest
     http_port: 3000
     instance_size_slug: basic-xxs
     instance_count: 1
+    routes:
+      - path: /
