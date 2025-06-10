@@ -1,20 +1,14 @@
 name: Deploy to DigitalOcean App Platform
-
 on:
   push:
     branches: [ main ]
-
-permissions:
-  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to App Platform
+      - uses: actions/checkout@v4
+      - name: Deploy
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DO_API_TOKEN }}
