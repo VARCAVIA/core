@@ -17,4 +17,4 @@ jobs:
           token: ${{ secrets.DO_API_TOKEN }}
           project_id: ${{ secrets.DO_PROJECT_ID }}
           app_spec_location: .do/app.yaml
-          app_name: varcavia-core
+          # app_name rimosso -> crea nuova app se non esiste
