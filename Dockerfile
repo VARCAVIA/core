@@ -1,33 +1,34 @@
-# Dockerfile
-
-# --- Stage 1: Build ---
-# Installa dipendenze, copia il codice e genera gli indici statici
+# --- Stage 1: build ---
 FROM node:18-alpine AS build
 WORKDIR /app
-
-# Copia package.json e installa TUTTE le dipendenze (incluse dev-dependencies per la build)
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN npm ci
-
-# Copia il resto del codice sorgente
 COPY . .
+RUN npm run update-all        # genera indexed/ alla build
 
-# Esegui lo script che genera gli indici (risolve l'errore ENOENT)
-RUN npm run update-all
-
-# --- Stage 2: Runtime ---
-# Prepara l'immagine finale, leggera e pronta per la produzione
+# --- Stage 2: runtime + cron ---
 FROM node:18-alpine AS runtime
 WORKDIR /app
 
-# Copia solo le dipendenze di produzione dallo stage di build
-COPY --from=build /app/package.json /app/package-lock.json ./
+# dipendenze prod
+COPY --from=build /app/package*.json ./
 RUN npm ci --only=production
 
-# Copia solo gli artefatti necessari per l'esecuzione
+# codice + artefatti
 COPY --from=build /app/src ./src
 COPY --from=build /app/public ./public
 COPY --from=build /app/indexed ./indexed
+COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/config ./config
 
+# cron files
+RUN apk add --no-cache dumb-init busybox-suid
+COPY cron.d/varcavia /etc/cron.d/varcavia
+RUN chmod 0644 /etc/cron.d/varcavia && crontab /etc/cron.d/varcavia
+
+# entrypoint  ➜ avvia cron & API
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 3000
-CMD ["node", "src/api.js"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/docker-entrypoint.sh"]
