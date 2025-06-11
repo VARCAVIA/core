@@ -1,24 +1,25 @@
-# ----------------------------------
 # Node / npm
 node_modules/
 npm-debug.log*
 
-# Docker artefacts
-core-varcavia*.tar
-
-# Runtime artefacts (GENERATI)
+# Generati runtime
 raw/
 parsed/
 indexed/
 logs/
 crawler_runs.csv
-hashes.json      # nuova riga: DB hash per deduplicazione
+hashes.json
 
-# System files
+# cron history & temp
+history/
+node/              # cartella tmp (node profiler?)
+
+# Docker artefacts
+core-varcavia*.tar
+
+# Scripts
+*.sh text eol=lf
+
+# Windows / macOS
 .DS_Store
 Thumbs.db
-
-# Editor / OS
-.idea/
-.vscode/
-*.swp
