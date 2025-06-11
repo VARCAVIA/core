@@ -3,45 +3,40 @@ import path from 'path';
 import lunr from 'lunr';
 
 const PARSED_DIR = 'parsed';
-const INDEX_DIR = 'indexed';
+const INDEX_DIR  = 'indexed';
+
+await fs.mkdir(INDEX_DIR, { recursive: true });
 
 const documents = [];
-const docMap = {};
+const seenHash  = new Set();
 
-const files = await fs.readdir(PARSED_DIR);
-
-for (const file of files) {
+for (const file of await fs.readdir(PARSED_DIR)) {
   if (!file.endsWith('.txt')) continue;
 
-  const id = file.replace('.txt', '');
+  const id   = file.replace('.txt', '');
   const text = await fs.readFile(path.join(PARSED_DIR, file), 'utf8');
-  const source = id.split('_')[0];
-  const date = id.split('_')[1] || '';
-  const title = text.split('\n')[0].slice(0, 80);
+  const hash = Buffer.from(text).toString('base64');     // semplice dedupe
 
-  const doc = {
-    id,
-    source,
-    date,
-    title,
-    text
-  };
+  if (seenHash.has(hash)) {
+    console.log(`⚠️  Duplicate skip: ${file}`);
+    continue;
+  }
+  seenHash.add(hash);
 
-  documents.push(doc);
-  docMap[id] = doc;
+  const [source, date = ''] = id.split('_');
+  const title = text.split('\n')[0].slice(0, 100);
+
+  documents.push({ id, source, date, title, text });
 }
 
+// crea indice lunr
 const idx = lunr(function () {
   this.ref('id');
-  this.field('text');
-  this.field('title');
-  this.field('source');
-
+  this.field('title'); this.field('text'); this.field('source');
   documents.forEach(d => this.add(d));
 });
 
-await fs.mkdir(INDEX_DIR, { recursive: true });
-await fs.writeFile(path.join(INDEX_DIR, 'index.json'), JSON.stringify(idx));
-await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap, null, 2));
+await fs.writeFile(path.join(INDEX_DIR, 'index.json'),     JSON.stringify(idx));
+await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(Object.fromEntries(documents.map(d => [d.id, d])), null, 2));
 
-console.log(`📚 Indicizzazione full-text completata con ${documents.length} documenti.`);
+console.log(`📚 Indicizzati ${documents.length} documenti unici.`);
