@@ -1,45 +1,57 @@
 import fs from 'fs/promises';
+import crypto from 'crypto';
 import fetch from 'node-fetch';
 import yaml from 'yaml';
 
-// Carica registro fonti
-let sources;
-try {
-  const text = await fs.readFile('config/registry.yaml', 'utf8');
-  ({ sources } = yaml.parse(text));
-  if (!sources) throw new Error('No sources found in registry.yaml');
-} catch (err) {
-  console.error('❌ Errore caricando registry.yaml:', err.message);
-  process.exit(1);
-}
+const REGISTRY = 'config/registry.yaml';
+const RAW_DIR = 'raw';
+const HASH_DB = 'hashes.json';
 
-// Assicura esistenza cartella raw/
-await fs.mkdir('raw', { recursive: true });
+// 1. carica registro fonti
+const { sources } = yaml.parse(await fs.readFile(REGISTRY, 'utf8'));
 
-// Timestamp ISO compatto
+// 2. carica db hash esistente (o vuoto)
+let hashDb = {};
+try { hashDb = JSON.parse(await fs.readFile(HASH_DB, 'utf8')); } catch {}
+
+// 3. assicura cartella raw
+await fs.mkdir(RAW_DIR, { recursive: true });
+
 const now = new Date().toISOString();
-
-// Cicla su ogni fonte
 for (const src of sources) {
-  console.log(`--> ${src.id}  (${src.url})`);
-  let status = 'ok';
-  let httpStatus = 0;
+  console.log(`--> ${src.id} (${src.url})`);
+  let status = 'ok', http = 0;
+
   try {
     const res = await fetch(src.url);
-    httpStatus = res.status;
+    http = res.status;
     if (!res.ok) throw new Error(res.statusText);
+
     const body = await res.text();
-    const path = `raw/${src.id}.html`;
-    await fs.writeFile(path, body);
-    console.log(`    ✅ Salvato ${path}`);
+    const hash = crypto.createHash('sha256').update(body).digest('hex');
+
+    // deduplica
+    if (hashDb[src.id] === hash) {
+      console.log('    ⚠️  Contenuto invariato – skip.');
+      continue;
+    }
+
+    const filename = `${RAW_DIR}/${src.id}.html`;
+    await fs.writeFile(filename, body);
+    hashDb[src.id] = hash;
+    console.log(`    ✅ Salvato ${filename}`);
   } catch (err) {
     status = 'fail';
-    console.error(`    ❌ Errore su ${src.id}: ${err.message}`);
+    console.error(`    ❌ ${err.message}`);
   }
 
-  // Append sul CSV (crea se non esiste)
-  const line = `${src.id},${now},${status},${httpStatus},raw/${src.id}.html\n`;
-  await fs.appendFile('crawler_runs.csv', line);
+  // append run
+  await fs.appendFile(
+    'crawler_runs.csv',
+    `${src.id},${now},${status},${http}\n`
+  );
 }
 
-console.log('✅ Crawler run completato');
+// 4. salva nuovo db hash
+await fs.writeFile(HASH_DB, JSON.stringify(hashDb, null, 2));
+console.log('✅ Crawler completato (deduplicazione attiva).');
