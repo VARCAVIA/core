@@ -1,0 +1,2 @@
+# Esegue update-logged ogni giorno alle 06:00 UTC
+0 6 * * * root /app/scripts/update-logged.sh >> /app/logs/cron.log 2>&1
