@@ -1,36 +1,52 @@
-// src/indexer.js
 import fs from 'fs/promises';
 import path from 'path';
 import lunr from 'lunr';
 
-const parsedDir = 'parsed';
-const indexedDir = 'indexed';
+const PARSED_DIR = 'parsed';
+const INDEX_DIR = 'indexed';
 
-await fs.mkdir(indexedDir, { recursive: true });
-
-const files = await fs.readdir(parsedDir);
 const documents = [];
-let counter = 0;
+const docMap = {};
+
+// Leggi tutti i file da parsed/
+const files = await fs.readdir(PARSED_DIR);
 
 for (const file of files) {
-  if (!file.endsWith('.json')) continue; // Ora usa i file JSON con metadati
-  const doc = JSON.parse(await fs.readFile(path.join(parsedDir, file), 'utf8'));
-  // id, title, date, source, text già nel JSON
+  if (!file.endsWith('.txt')) continue;
+
+  const id = file.replace('.txt', '');
+  const text = await fs.readFile(path.join(PARSED_DIR, file), 'utf8');
+
+  // Genera metadati base
+  const source = id.split('_')[0];
+  const date = id.split('_')[1] || '';
+  const title = text.split('\n')[0].slice(0, 80);
+
+  const doc = {
+    id,
+    source,
+    date,
+    title,
+    text
+  };
+
   documents.push(doc);
-  await fs.writeFile(path.join(indexedDir, `${doc.id}.json`), JSON.stringify(doc));
-  console.log(`✅ Indicizzato ${file} → ${path.join(indexedDir, doc.id + '.json')}`);
-  counter++;
+  docMap[id] = doc;
 }
 
-// Indicizzazione multi-campo
+// Crea indice Lunr
 const idx = lunr(function () {
   this.ref('id');
-  this.field('title');
   this.field('text');
+  this.field('title');
   this.field('source');
-  this.field('date');
-  for (const doc of documents) this.add(doc);
+
+  documents.forEach(d => this.add(d));
 });
 
-await fs.writeFile(path.join(indexedDir, 'index.json'), JSON.stringify(idx));
-console.log(`📚 Indicizzazione full-text multi-campo completata con ${counter} documenti.`);
+// Salva index e mappa documenti
+await fs.mkdir(INDEX_DIR, { recursive: true });
+await fs.writeFile(path.join(INDEX_DIR, 'index.json'), JSON.stringify(idx));
+await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap));
+
+console.log(`✅ Indicizzati ${documents.length} documenti`);
