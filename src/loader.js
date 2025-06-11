@@ -1,52 +1,68 @@
-// src/loader.js
 import fs from 'fs/promises';
 import path from 'path';
-import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
+import { JSDOM } from 'jsdom';
 import yaml from 'yaml';
 
-const rawDir = 'raw';
-const parsedDir = 'parsed';
+const RAW_DIR    = 'raw';
+const PARSED_DIR = 'parsed';
+const META_FILE  = 'parsed/metadata.json';
+const REGISTRY   = 'config/registry.yaml';
 
-// Carica la lista fonti per ottenere i nomi
-const sources = yaml.parse(await fs.readFile('config/registry.yaml', 'utf8')).sources;
+/* 1️⃣  Carica registry per campo issuer ----------------------------------- */
+const { sources } = yaml.parse(await fs.readFile(REGISTRY, 'utf8'));
+const issuerMap = Object.fromEntries(sources.map(s => [s.id, s.name]));
 
-await fs.mkdir(parsedDir, { recursive: true });
+/* 2️⃣  Assicura cartella parsed ------------------------------------------ */
+await fs.mkdir(PARSED_DIR, { recursive: true });
 
-const files = await fs.readdir(rawDir);
+/* 3️⃣  Metadata accumulato ------------------------------------------------ */
+const metadata = {};
 
-for (const file of files) {
-  if (!file.endsWith('.html')) continue;
-  const id = path.basename(file, '.html');
-  const html = await fs.readFile(path.join(rawDir, file), 'utf8');
+/* 4️⃣  Cicla file HTML+RSS già scaricati ---------------------------------- */
+for (const file of await fs.readdir(RAW_DIR)) {
+  if (!file.endsWith('.html') && !file.endsWith('.xml')) continue;
 
-  // Estrazione via Readability
-  const dom = new JSDOM(html);
-  const reader = new Readability(dom.window.document);
-  const article = reader.parse();
+  const id   = file.replace('.html', '').replace('.xml', '');
+  const html = await fs.readFile(path.join(RAW_DIR, file), 'utf8');
+  const dom  = new JSDOM(html);
+  let title  = '';
+  let text   = '';
 
-  // Recupera title e testo principale
-  const title = article?.title || '';
-  const text = article?.textContent || '';
+  /* ---- Estrazione titolo ---------------------------------------------- */
+  const og   = dom.window.document.querySelector('meta[property="og:title"]');
+  if (og?.content) title = og.content.trim();
+  if (!title) title = dom.window.document.title.trim();
+  if (!title) title = dom.window.document.querySelector('h1')?.textContent?.trim() || '';
 
-  // Data di scraping come fallback (migliorabile in seguito con pattern sul testo)
-  const date = new Date().toISOString();
+  /* ---- Estrazione testo leggibile -------------------------------------- */
+  try {
+    const reader = new Readability(dom.window.document);
+    text = reader.parse().textContent;
+  } catch {
+    text = dom.window.document.body.textContent || '';
+  }
 
-  // Info fonte
-  const sourceObj = sources.find(s => s.id === id);
-  const source = sourceObj ? sourceObj.name : id;
+  /* ---- Data (regex AAAA-MM-GG) ----------------------------------------- */
+  const dateMatch = text.match(/\b(20\d{2}|19\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/);
+  const date = dateMatch ? dateMatch[0] : '';
 
-  // Salva JSON con metadati
-  const parsedObj = {
+  /* ---- Salva file .txt -------------------------------------------------- */
+  const plain = `${title}\n\n${text}`;
+  await fs.writeFile(path.join(PARSED_DIR, `${id}.txt`), plain);
+
+  /* ---- Aggiorna metadata ---------------------------------------------- */
+  metadata[id] = {
     id,
+    source : id.split('_')[0],
+    issuer : issuerMap[id.split('_')[0]] || '',
     title,
-    date,
-    source,
-    text
+    date
   };
-  await fs.writeFile(path.join(parsedDir, `${id}.txt`), text);
-  await fs.writeFile(path.join(parsedDir, `${id}.json`), JSON.stringify(parsedObj, null, 2));
 
-  console.log(`✅ ${file} → ${path.resolve(parsedDir, id + '.txt')}, metadati estratti`);
+  console.log(`✅ ${file} → /app/parsed/${id}.txt, metadati estratti`);
 }
-console.log('📄 Loader completato (metadati inclusi).');
+
+/* 5️⃣  Salva metadata globale ------------------------------------------- */
+await fs.writeFile(META_FILE, JSON.stringify(metadata, null, 2));
+console.log('📄 Loader completato (metadati estesi).');
