@@ -7,10 +7,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./indexed:/app/indexed
-      - ./parsed:/app/parsed
-      - ./public:/app/public
-      - ./config:/app/config
+  - ./indexed:/app/indexed
+  - ./parsed:/app/parsed
+  - ./public:/app/public
+  - ./config:/app/config
+  - ./scripts:/app/scripts
     environment:
       - NODE_ENV=production
     command: ["node", "src/api.js"]
