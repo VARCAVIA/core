@@ -1,7 +1,7 @@
 #!/bin/sh
+set -e
 
 mkdir -p logs
-
 timestamp=$(date +"%Y%m%d-%H%M%S")
 logfile="logs/update-${timestamp}.log"
 
