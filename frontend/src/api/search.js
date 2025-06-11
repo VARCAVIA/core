@@ -1,5 +1,5 @@
-// frontend/src/api/search.js
-const API_URL = "http://localhost:4000";   // dev hard-coded
+const API_URL =
+  import.meta.env.VITE_API_URL?.trim() || "http://localhost:4000"; // fallback
 
 export const search = async (query) => {
   const res = await fetch(`${API_URL}/search`, {
@@ -8,5 +8,5 @@ export const search = async (query) => {
     body: JSON.stringify({ q: query }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();             // { results: [...] }
+  return res.json();
 };
