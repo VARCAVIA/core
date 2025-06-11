@@ -2,7 +2,7 @@ services:
   varcavia:
     build:
       context: .
-      target: runtime
+      target: runtime            # stage “runtime” del Dockerfile
     container_name: varcavia-app
     ports:
       - "3000:3000"
@@ -15,8 +15,10 @@ services:
       - ./logs:/app/logs
     environment:
       - NODE_ENV=production
-      - PING_URL=https://hc-ping.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      - SMTP_USER=tuoaccount@gmail.com
-      - SMTP_PASS=la_tua_app_password
-      - ALERT_EMAIL=tuoalert@gmail.com
+      # ---------- MONITORING ----------
+      - PING_URL=https://hc-ping.com/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx   # ← incolla qui il ping URL di Healthchecks
+      # ---------- EMAIL ALERT ----------
+      - SMTP_USER=mr.margarella@gmail.com
+      - SMTP_PASS=snon trwv qkcw bmpb        # ← App-Password a 16 caratteri (nessuno spazio)
+      - ALERT_EMAIL=mr.margarella@gmail.com  # puoi cambiarlo se vuoi inviare ad altro indirizzo
     restart: unless-stopped
