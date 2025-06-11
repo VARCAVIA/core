@@ -11,6 +11,8 @@ services:
     volumes:
       - ./indexed:/app/indexed
       - ./parsed:/app/parsed
+      - ./public:/app/public
     environment:
       - NODE_ENV=production
+    command: ["node", "src/api.js"]
     restart: unless-stopped
