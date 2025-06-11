@@ -1,3 +1,4 @@
+# ----------------------------------
 # Node / npm
 node_modules/
 npm-debug.log*
@@ -5,14 +6,15 @@ npm-debug.log*
 # Docker artefacts
 core-varcavia*.tar
 
-# Runtime artefacts
+# Runtime artefacts (GENERATI)
 raw/
 parsed/
 indexed/
 logs/
 crawler_runs.csv
+hashes.json      # nuova riga: DB hash per deduplicazione
 
-# System
+# System files
 .DS_Store
 Thumbs.db
 
