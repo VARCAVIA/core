@@ -1,34 +1,32 @@
-# --- Stage 1: build ---
+# --- Stage 1: build (immutato) -----------------------------------------
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run update-all        # genera indexed/ alla build
+RUN npm run update-all
 
-# --- Stage 2: runtime + cron ---
+# --- Stage 2: runtime ---------------------------------------------------
 FROM node:18-alpine AS runtime
 WORKDIR /app
 
-# dipendenze prod
+# deps
 COPY --from=build /app/package*.json ./
 RUN npm ci --only=production
 
 # codice + artefatti
-COPY --from=build /app/src ./src
-COPY --from=build /app/public ./public
-COPY --from=build /app/indexed ./indexed
-COPY --from=build /app/scripts ./scripts
-COPY --from=build /app/config ./config
+COPY --from=build /app/ .  # copia tutto
 
-# cron files
-RUN apk add --no-cache dumb-init busybox-suid
-COPY cron.d/varcavia /etc/cron.d/varcavia
+# utilità cron + dos2unix
+RUN apk add --no-cache dumb-init busybox-suid dos2unix
+
+# 🔄 converte CRLF→LF per ogni .sh copiato
+RUN find /app -type f -name "*.sh" -exec dos2unix {} +
+
+# cron
 RUN chmod 0644 /etc/cron.d/varcavia && crontab /etc/cron.d/varcavia
 
-# entrypoint  ➜ avvia cron & API
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-EXPOSE 3000
+# entrypoint
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/docker-entrypoint.sh"]
+CMD ["sh", "/docker-entrypoint.sh"]
+EXPOSE 3000
