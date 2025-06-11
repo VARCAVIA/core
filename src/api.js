@@ -1,4 +1,3 @@
-// src/api.js
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
@@ -9,54 +8,45 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(process.cwd(), 'public')));
 
-// Carica indice e documenti
-const INDEX = JSON.parse(await fs.readFile('indexed/index.json', 'utf8'));
-const DOCS = {};
-for (const file of await fs.readdir('indexed')) {
-  if (file === 'index.json') continue;
-  DOCS[path.basename(file, '.json')] = JSON.parse(
-    await fs.readFile(path.join('indexed', file), 'utf8')
-  );
-}
-const idx = lunr.Index.load(INDEX);
+// Caricamento indice
+let index;
+let documents = [];
 
-// Health-check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Search API
-app.get('/api/search', (req, res) => {
-  const q = req.query.q || '';
-  console.log({ ts: new Date().toISOString(), event: 'search', q });
+async function loadIndex() {
   try {
-    const results = idx.search(q);
-    const out = results.map(({ ref }) => {
-      const doc = DOCS[ref];
-      return {
-        id: ref,
-        source: doc.source,
-        title: doc.title,
-        preview: doc.preview,
-        hash: doc.hash,
-        timestamp: doc.timestamp
-      };
-    });
-    res.json(out);
+    const indexData = JSON.parse(await fs.readFile('indexed/index.json', 'utf8'));
+    index = lunr.Index.load(indexData);
+
+    const docsData = JSON.parse(await fs.readFile('indexed/docs.json', 'utf8'));
+    documents = docsData;
+    console.log(`✅ Indice e documenti caricati (${documents.length})`);
   } catch (err) {
-    console.error({ ts: new Date().toISOString(), event: 'error', error: err.message });
-    res.status(500).json({ error: 'API error' });
+    console.error('❌ Errore caricando l’indice:', err.message);
+    process.exit(1);
+  }
+}
+
+// Endpoint ricerca
+app.get('/search', (req, res) => {
+  const q = req.query.q;
+  if (!q) return res.status(400).json({ error: 'Parametro "q" richiesto' });
+
+  try {
+    const results = index.search(q);
+    const matches = results.map(r => {
+      const doc = documents.find(d => d.id === r.ref);
+      return { score: r.score, ...doc };
+    });
+    res.json(matches);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Fallback alla UI
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(process.cwd(), 'public/index.html'));
-});
-
-app.listen(PORT, () => {
-  console.log(`🔗 API server running on http://localhost:${PORT}`);
+// Avvia server dopo caricamento indice
+loadIndex().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 API attiva su http://localhost:${PORT}`);
+  });
 });
