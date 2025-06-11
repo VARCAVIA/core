@@ -42,6 +42,6 @@ const idx = lunr(function () {
 
 await fs.mkdir(INDEX_DIR, { recursive: true });
 await fs.writeFile(path.join(INDEX_DIR, 'index.json'), JSON.stringify(idx));
-await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap));
+await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap, null, 2));
 
-console.log(`📚 Indicizzazione full-text multi-campo completata con ${documents.length} documenti.`);
+console.log(`📚 Indicizzazione full-text completata con ${
