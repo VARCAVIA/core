@@ -1,6 +1,6 @@
-# Normalizza tutti i file di testo (LF in repo)
-* text=auto
-
-# Forza LF per gli script
+# Assicura LF per tutti gli shell script
 *.sh text eol=lf
-*.sh linguist-language=Shell
+
+# Mantiene CRLF per .bat / .cmd se mai ne avremo
+*.cmd text eol=crlf
+*.bat text eol=crlf
