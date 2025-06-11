@@ -8,7 +8,6 @@ const INDEX_DIR = 'indexed';
 const documents = [];
 const docMap = {};
 
-// Leggi tutti i file da parsed/
 const files = await fs.readdir(PARSED_DIR);
 
 for (const file of files) {
@@ -16,8 +15,6 @@ for (const file of files) {
 
   const id = file.replace('.txt', '');
   const text = await fs.readFile(path.join(PARSED_DIR, file), 'utf8');
-
-  // Genera metadati base
   const source = id.split('_')[0];
   const date = id.split('_')[1] || '';
   const title = text.split('\n')[0].slice(0, 80);
@@ -34,7 +31,6 @@ for (const file of files) {
   docMap[id] = doc;
 }
 
-// Crea indice Lunr
 const idx = lunr(function () {
   this.ref('id');
   this.field('text');
@@ -44,9 +40,8 @@ const idx = lunr(function () {
   documents.forEach(d => this.add(d));
 });
 
-// Salva index e mappa documenti
 await fs.mkdir(INDEX_DIR, { recursive: true });
 await fs.writeFile(path.join(INDEX_DIR, 'index.json'), JSON.stringify(idx));
 await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap));
 
-console.log(`✅ Indicizzati ${documents.length} documenti`);
+console.log(`📚 Indicizzazione full-text multi-campo completata con ${documents.length} documenti.`);
