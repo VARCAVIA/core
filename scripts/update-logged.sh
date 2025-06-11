@@ -7,20 +7,14 @@ logfile="logs/update-${timestamp}.log"
 
 echo "▶️  Esecuzione update-all: ${timestamp}" | tee -a "$logfile"
 
-# --------------------------------------------------------
-# Esegue la pipeline e cattura exit code in $PIPESTATUS
-# --------------------------------------------------------
 npm run update-all 2>&1 | tee -a "$logfile"
-STATUS=${PIPESTATUS:-$?}          # compatibilità busybox
+STATUS=${PIPESTATUS:-$?}   # compatibile busybox
 
-# 🔍 Se exit 0 ma log contiene “❌”, considera fail
+# fallisce se log contiene "❌"
 if [ "$STATUS" -eq 0 ] && grep -q "❌" "$logfile"; then
   STATUS=1
 fi
 
-# --------------------------------------------------------
-# PING healthchecks + eventuale email
-# --------------------------------------------------------
 if [ "$STATUS" -eq 0 ]; then
   echo "✅ Pipeline OK" | tee -a "$logfile"
   [ -n "$PING_URL" ] && curl -fsS --retry 3 "$PING_URL" >/dev/null 2>&1 || true
