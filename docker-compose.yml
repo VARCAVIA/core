@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   varcavia:
     build:
@@ -12,6 +10,7 @@ services:
       - ./indexed:/app/indexed
       - ./parsed:/app/parsed
       - ./public:/app/public
+      - ./config:/app/config
     environment:
       - NODE_ENV=production
     command: ["node", "src/api.js"]
