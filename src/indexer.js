@@ -44,4 +44,4 @@ await fs.mkdir(INDEX_DIR, { recursive: true });
 await fs.writeFile(path.join(INDEX_DIR, 'index.json'), JSON.stringify(idx));
 await fs.writeFile(path.join(INDEX_DIR, 'documents.json'), JSON.stringify(docMap, null, 2));
 
-console.log(`📚 Indicizzazione full-text completata con ${
+console.log(`📚 Indicizzazione full-text completata con ${documents.length} documenti.`);
