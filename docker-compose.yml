@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  varcavia:
+    build:
+      context: .
+      target: runtime
+    container_name: varcavia-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./indexed:/app/indexed
+      - ./parsed:/app/parsed
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
