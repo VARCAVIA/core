@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL =
+  import.meta.env.VITE_API_URL?.trim() || "http://localhost:4000"; // fallback
 
 export const search = async (query) => {
   const res = await fetch(`${API_URL}/search`, {
