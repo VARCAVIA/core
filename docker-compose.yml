@@ -12,7 +12,7 @@ services:
       - ./public:/app/public
       - ./config:/app/config
       - ./scripts:/app/scripts
+      - ./logs:/app/logs
     environment:
       - NODE_ENV=production
-    command: ["node", "src/api.js"]
     restart: unless-stopped
