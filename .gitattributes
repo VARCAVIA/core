@@ -1,0 +1,6 @@
+# Normalizza tutti i file di testo (LF in repo)
+* text=auto
+
+# Forza LF per gli script
+*.sh text eol=lf
+*.sh linguist-language=Shell
