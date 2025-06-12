@@ -1,0 +1,178 @@
+1ce0d18 2025-06-12 ci: trigger clean workflow run
+903cb40 2025-06-12 chore(ci): trigger workflow
+b20954b 2025-06-12 chore: remove all non-Vercel workflows
+c948635 2025-06-12 chore(ci): clean up non-vercel workflows, add vercel-action
+2569a8a 2025-06-12 ci: remove all non-Vercel workflows, add official Vercel CI
+cc82598 2025-06-12 fix(ci): replace DigitalOcean actions with Vercel deploy action
+7f46a06 2025-06-12 fix(ci): use vercel-action for deploy instead of DigitalOcean
+da4fdf1 2025-06-12 Update frontend.yml
+71ca9da 2025-06-12 Update search.js
+ac1585d 2025-06-12 Create search.js
+6cfd381 2025-06-11 Create frontend.yml
+bb9708a 2025-06-11 Update .env.local
+7b6c5aa 2025-06-11 Update search.js
+0a8ad80 2025-06-11 Update .env.local
+5fa1b5a 2025-06-11 Update search.js
+e22029d 2025-06-11 Create .env.local
+0c1d396 2025-06-11 Update search.js
+c17ebc8 2025-06-11 Create index.js
+50d7f95 2025-06-11 Create package.json
+d652dc4 2025-06-11 Create index.html
+51d2fc8 2025-06-11 Create main.jsx
+ec967d5 2025-06-11 Create index.css
+2f71d5c 2025-06-11 Create postcss.config.js
+1ba7c84 2025-06-11 Create tailwind.config.js
+c9fa188 2025-06-11 Create vite.config.js
+ab2960d 2025-06-11 Create package.json
+33b3d8a 2025-06-11 Create App.jsx
+a71df21 2025-06-11 Create ResultsGrid.jsx
+52b4e69 2025-06-11 Create SearchBar.jsx
+ae73efb 2025-06-11 Create SearchContext.jsx
+999320e 2025-06-11 Create search.js
+065c2d6 2025-06-11 Update docker-compose.yml
+6048c95 2025-06-11 Update .gitignore
+4cc0090 2025-06-11 Update email-alert.js
+47b9e55 2025-06-11 Update update-logged.sh
+7faaeae 2025-06-11 Update docker-compose.yml
+4ad0f6e 2025-06-11 Update Dockerfile
+da98e15 2025-06-11 Update update-logged.sh
+06b4401 2025-06-11 Update update-logged.sh
+b58597d 2025-06-11 Update Dockerfile
+750d241 2025-06-11 Update .gitattributes
+cb0d510 2025-06-11 Create .gitattributes
+ee73beb 2025-06-11 Monitoring: Healthchecks ping + email alert via nodemailer
+e246134 2025-06-11 Create email-alert.js
+37bc95f 2025-06-11 Update update-logged.sh
+633c5a5 2025-06-11 Update indexer.js
+feb7fb1 2025-06-11 Update loader.js
+0e11cb9 2025-06-11 Update .gitignore
+76258d0 2025-06-11 Update indexer.js
+55aac09 2025-06-11 Update scraper.js
+4ee18b5 2025-06-11 Add entrypoint, logged script, clean ignored artefacts
+00f59ae 2025-06-11 Update .gitignore
+60e0559 2025-06-11 Update update-logged.sh
+f7c0374 2025-06-11 Create docker-entrypoint.sh
+d1bbcfe 2025-06-11 Update docker-compose.yml
+a524aa6 2025-06-11 Create varcavia
+8684e2c 2025-06-11 Update Dockerfile
+0cf26e6 2025-06-11 Update docker-compose.yml
+54fd3e4 2025-06-11 Update docker-compose.yml
+e6c67a7 2025-06-11 Create update-logged.sh
+e0cc972 2025-06-11 Update indexer.js
+cfa3985 2025-06-11 Update indexer.js
+50d4bf6 2025-06-11 Update indexer.js
+dd1459e 2025-06-11 Update indexer.js
+005c86e 2025-06-11 Update api.js
+dd53267 2025-06-11 Update api.js
+dee14f8 2025-06-11 Update docker-compose.yml
+cc2f8c3 2025-06-11 Update docker-compose.yml
+5dc49cf 2025-06-11 Create docker-compose.yml
+b0a0439 2025-06-10 Update app.yaml
+b232545 2025-06-10 Update deploy-do.yml
+381b2a4 2025-06-10 Update deploy-do.yml
+149c6bc 2025-06-10 Update app.yaml
+b415f80 2025-06-10 Update deploy-do.yml
+a33f139 2025-06-10 Update app.yaml
+697d731 2025-06-08 Create app.yaml
+4662435 2025-06-08 Update Dockerfile
+5b8ab47 2025-06-08 Update deploy-do.yml
+e9ecda8 2025-06-08 Update deploy-do.yml
+d605061 2025-06-08 Update Dockerfile
+a4b7d85 2025-06-08 Delete .do directory
+d5321f5 2025-06-08 Update app.yaml
+38823ff 2025-06-08 Create app.yaml
+791d1dd 2025-06-08 Create deploy-do.yml
+a90f584 2025-06-08 Update api.js
+7c025d0 2025-06-08 Add Docker build & publish workflow
+6dde5f8 2025-06-08 Create .dockerignore
+13d0645 2025-06-08 Create Dockerfile
+cc1fa64 2025-06-08 Update index.html
+2c1cbee 2025-06-08 Update api.js
+d133c3e 2025-06-08 Update index.html
+e5e0bfe 2025-06-08 Update api.js
+616de7a 2025-06-08 Update index.html
+b4c22d8 2025-06-08 Update api.js
+77b2dc8 2025-06-08 Update api.js
+d4b9b20 2025-06-08 Update index.html
+35f2da1 2025-06-08 Update api.js
+237d935 2025-06-08 Indicizzazione full-text su title, source, date e text
+c5b5751 2025-06-08 Update indexer.js
+38b5cbe 2025-06-08 Update loader.js
+ce530d7 2025-06-08 Update registry.yaml
+120d176 2025-06-08 Update registry.yaml
+8c9080d 2025-06-08 Aggiorna dati dopo inserimento World Bank
+92adce0 2025-06-08 Aggiungi @mozilla/readability alle dipendenze per CI
+3e23351 2025-06-08 Create update-all.yml
+7d90327 2025-06-08 Create .gitkeep
+d1c949f 2025-06-08 Update index.html
+455e7e2 2025-06-08 Update api.js
+60618ba 2025-06-08 Update loader.js
+e615f54 2025-06-08 Update indexer.js
+cb55db0 2025-06-08 Update ci.yml
+aca9920 2025-06-08 Update package.json
+a918a18 2025-06-08 Update indexer.js
+3751369 2025-06-08 Update loader.js
+7aa24c2 2025-06-07 Update scraper.js
+3014660 2025-06-07 Create ARCHITECTURE.md
+a76604f 2025-06-07 Aggiorna output pipeline batch e dati latest
+48d6c33 2025-06-07 Update scraper.js
+ce0495e 2025-06-07 Update scraper.js
+5fefda8 2025-06-07 Rename src/update-all.bat to update-all.bat
+7e34e1c 2025-06-07 Update update-all.bat
+6df2ef0 2025-06-07 Update .gitignore
+00771d2 2025-06-07 Create update-all.bat
+fb18d3c 2025-06-07 Create update-all.sh
+5457ba3 2025-06-07 Allinea repo: dati indicizzati, lockfile, e nuove cartelle
+c97025d 2025-06-07 Update README.md
+05b8769 2025-06-07 Update api.js
+ec2932b 2025-06-07 Update index.html
+de75f04 2025-06-07 Update api.js
+4fdc798 2025-06-07 Create index.html
+3d03cf1 2025-06-07 Delete public
+52727a1 2025-06-07 Create public
+7fcfccd 2025-06-07 Update api.js
+cec2cde 2025-06-07 Update indexer.js
+1d1a5fe 2025-06-07 Update api.js
+ddbb86b 2025-06-07 Update indexer.js
+6959783 2025-06-07 Update indexer.js
+f076fc3 2025-06-07 Create api.js
+27a7c11 2025-06-07 Create search.js
+1d50a8f 2025-06-07 Update indexer.js
+4239e3f 2025-06-07 Aggiorna parsed/ e indicizzazione con file loader e scraper
+f9d9e9e 2025-06-07 Update scraper.js
+99cee1f 2025-06-07 Update indexer.js
+1033ef7 2025-06-07 Create indexer.js
+e447db0 2025-06-07 Update loader.js
+ff79c55 2025-06-07 Update package.json
+6a89b26 2025-06-07 Add loader.js
+6cd93d2 2025-06-07 Track parsed folder with .gitkeep
+4ec8a79 2025-06-07 Update parser.js
+058a4fd 2025-06-07 Update parser.js
+305f8ff 2025-06-07 Update ci.yml
+54ba788 2025-06-07 Update ci.yml
+d3eadb1 2025-06-07 Update package.json
+3036209 2025-06-07 Update package.json
+1fa06c9 2025-06-07 Create parser.js
+3e4fe26 2025-06-06 add crawler_runs header
+cb84ae9 2025-06-06 Update scraper.js
+bd425f3 2025-06-06 fetch first source
+b050161 2025-06-06 add raw folder
+0fd07e0 2025-06-06 remove duplicate test file
+fac949b 2025-06-06 fix json & node-fetch version
+cbb8f6c 2025-06-06 fix package.json syntax
+6ef7301 2025-06-06 fix package.json syntax
+bda0278 2025-06-06 Update scraper.js
+0678c76 2025-06-06 Update package.json
+7a5ab38 2025-06-06 Create scraper.test.js
+82d6bc4 2025-06-06 Update package.json
+cff49c5 2025-06-06 Create scraper.js
+846813e 2025-06-06 Delete package.json.
+cb28f14 2025-06-06 Merge pull request #1 from VARCAVIA/setup
+6332594 2025-06-06 Create package.json
+1301aaa 2025-06-06 Update ci.yml
+14ce112 2025-06-06 Update ci.yml
+4839e40 2025-06-06 Create package.json.
+50ea0fa 2025-06-06 fix CI action
+078d257 2025-06-05 add initial registry
+018d310 2025-06-05 Create ci.yml
+071713c 2025-06-05 Initial commit
