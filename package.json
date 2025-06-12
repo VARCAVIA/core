@@ -1,4 +1,9 @@
 {
+  "type": "module",
+  "name": "varcavia",
+  ...
+}
+{
   "name": "varcavia",
   "version": "1.0.1",
   "scripts": {
