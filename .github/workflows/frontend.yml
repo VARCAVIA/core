@@ -2,10 +2,9 @@ name: Frontend CI + Vercel Deploy
 
 on:
   push:
+    branches: [ main ]
     paths:
       - "frontend/**"
-    branches:
-      - main
   pull_request:
     paths:
       - "frontend/**"
