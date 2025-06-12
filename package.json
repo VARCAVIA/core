@@ -1,11 +1,7 @@
 {
-  "type": "module",
-  "name": "varcavia",
-  ...
-}
-{
   "name": "varcavia",
   "version": "1.0.1",
+  "type": "module",
   "scripts": {
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" frontend/src --max-warnings=0",
     "format": "prettier --write .",
