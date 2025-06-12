@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    name: Build Frontend
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,6 +31,7 @@ jobs:
           path: frontend/dist
 
   deploy:
+    name: Deploy to Vercel
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
