@@ -1,4 +1,3 @@
-node_modules
-coverage
-reports
 frontend/dist
+node_modules
+reports
