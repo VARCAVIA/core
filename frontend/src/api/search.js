@@ -1,8 +1,7 @@
-const API_URL =
-  import.meta.env.VITE_API_URL?.trim() || "http://localhost:4000"; // fallback
-
 export const search = async (query) => {
-  const res = await fetch(`${API_URL}/search`, {
+  const url = `/api/search`;
+  console.log("→ chiamata a", url);
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ q: query }),
