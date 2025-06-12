@@ -21,3 +21,4 @@ node src/loader.js
 node src/indexer.js
 node src/api.js
 # poi vai su http://localhost:3000 e cerca!
+"# Updated Vercel CI" 
