@@ -1,6 +1,4 @@
-node_modules
-coverage
-reports
-dist
 frontend/dist
-frontend/.vercel
+dist
+node_modules
+reports
