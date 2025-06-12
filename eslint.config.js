@@ -11,15 +11,24 @@ export default [
       parser: '@babel/eslint-parser',
       parserOptions: {
         requireConfigFile: false,
-        babelOptions: { presets: ['@babel/preset-react'] },
-      },
+        babelOptions: {
+          presets: ['@babel/preset-react']
+        }
+      }
     },
-    plugins: { prettier: eslintPluginPrettier, react: reactPlugin },
+    plugins: {
+      prettier: eslintPluginPrettier,
+      react: reactPlugin
+    },
     rules: {
       'prettier/prettier': 'error',
       'react/jsx-uses-react': 'off',
-      'react/react-in-jsx-scope': 'off',
+      'react/react-in-jsx-scope': 'off'
     },
-    settings: { react: { version: 'detect' } },
-  },
+    settings: {
+      react: {
+        version: 'detect'
+      }
+    }
+  }
 ]
