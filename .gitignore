@@ -1,26 +1,16 @@
-# Node / npm
+# Dependency folders
 node_modules/
-npm-debug.log*
 
-# Generati runtime
-raw/
-parsed/
-indexed/
+# Build outputs
+frontend/dist/
+
+# Logs
 logs/
-crawler_runs.csv
-hashes.json
+*.log
 
-# cron history & temp
-history/
-node/              # cartella tmp (node profiler?)
+# Local env files
+.env.local
 
-# Docker artefacts
-core-varcavia*.tar
-
-# Scripts
-*.sh text eol=lf
-
-# Windows / macOS
+# System files
 .DS_Store
 Thumbs.db
-/frontend/dist
