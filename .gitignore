@@ -1,12 +1,30 @@
 # Dependency folders
 node_modules/
+npm-debug.log*
+
+# Runtime-generated folders
+raw/
+parsed/
+indexed/
+logs/
+crawler_runs.csv
+hashes.json
+
+# Cron history & temp
+history/
+node/              # cartella tmp (node profiler?)
 
 # Build outputs
 frontend/dist/
 
-# Logs
-logs/
+# Docker artefacts
+core-varcavia*.tar
+
+# Log files
 *.log
+
+# Scripts
+*.sh     # shell scripts
 
 # Local env files
 .env.local
